@@ -17,7 +17,7 @@ class User {
     email = data['email'];
     hasPassword = data['hasPassword'];
     provider = data['provider'];
-    dateCreate = data['dateCreated'];
+    dateCreated = data['dateCreated'];
   }
   late String? id = '';
   late String? name = '';
@@ -26,7 +26,20 @@ class User {
   late String? email = '';
   late bool? hasPassword = false;
   late String? provider = '';
-  late String? dateCreate = '';
+  late String? dateCreated = '';
+
+  Map<String, dynamic> toMap() {
+    return {
+      '_id': id,
+      'name': name,
+      'firstName': firstName,
+      'picture': picture,
+      'email': email,
+      'hasPassword': hasPassword,
+      'provider': provider,
+      'dateCreated': dateCreated,
+    };
+  }
 }
 
 class Team {
@@ -40,4 +53,11 @@ class Team {
   }
   late String? id = '';
   late String? name = '';
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+    };
+  }
 }

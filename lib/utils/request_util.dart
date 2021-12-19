@@ -19,7 +19,6 @@ class ApiClient {
     var _content = response.body;
     // ignore: avoid_print
     var data = jsonDecode(_content);
-    print(data);
     f(data);
   }
 

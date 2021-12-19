@@ -47,7 +47,8 @@ dev_dependencies:
   flutter_lints: ^1.0.0
   flutter_svg: ^1.0.0
   http: ^0.13.4
-
+  shared_preferences: ^2.0.11
+  test: 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

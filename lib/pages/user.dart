@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:frisbee/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frisbee/utils/db_utils.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({Key? key}) : super(key: key);
@@ -16,25 +18,38 @@ class UserDrawer extends StatefulWidget {
   State<UserDrawer> createState() => _UserDrawerState();
 }
 
-User user = User();
+User? user = User();
 List<Team> teams = [];
-bool showDefaultAvatar = true;
+var dbClient = const DbClient();
 
 class _UserDrawerState extends State<UserDrawer> {
   @override
   void initState() {
     super.initState();
+    _initUser();
   }
 
-  void _changeUserInfo(data) {
-    setState(() {
-      Map<String, dynamic> userData = data['user'];
+  dynamic _getUser() async {
+    var key = 'user';
+    var userData = await dbClient.get(key, DataType.tMap);
+    if (userData != null) {
       user = User(data: userData);
-      for (var teamData in userData['teams']) {
-          teams.add(Team(data: teamData));
-      }
-      showDefaultAvatar = user.picture == '' ? true : false;
-    });
+    } 
+    return user;
+  }
+
+  Future<dynamic> _initUser() async {
+    return Future.sync(() => _getUser());
+  }
+
+  void _changeUserInfo(data) async {
+    Map<String, dynamic> userData = data['user'];
+    user = User(data: userData);
+    for (var teamData in userData['teams']) {
+      teams.add(Team(data: teamData));
+    }
+    await dbClient.write('user', user);
+    setState(() {});
   }
 
   @override
@@ -45,37 +60,40 @@ class _UserDrawerState extends State<UserDrawer> {
         child: ListView(
           children: [
             DrawerHeader(
-              child: SizedBox(
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: showDefaultAvatar
-                          ? SvgPicture.asset("assets/player.svg")
-                          : CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                user.picture.toString(),
-                              ),
-                              radius: 60,
-                            ),
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Text(user.name ?? '')
-                  ],
-                ),
-              ),
+              child: FutureBuilder(
+                  future: _initUser(),
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    return SizedBox(
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 40,
+                          ),
+                          SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: user?.picture == ''
+                                  ? SvgPicture.asset("assets/player.svg")
+                                  : CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        user?.picture ?? '',
+                                      ),
+                                      radius: 60,
+                                    )),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          Text(user?.name ?? '')
+                        ],
+                      ),
+                    );
+                  }),
               // padding: const EdgeInsets.only(right: 10, bottom: 50),
             ),
             ListTile(
               title: const Text('我的数据'),
               onTap: () {
-                if (user.picture.toString()  == '') {
+                if (user?.picture.toString() == null) {
                   ApiClient().get('/api/autologin', _changeUserInfo);
                 } else {
                   Navigator.pop(context);
