@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frisbee/pages/user.dart';
 import 'pages/home_page.dart';
 import 'pages/player.dart';
 import 'pages/playbook.dart';
@@ -54,7 +55,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
         onTap: _onTap,
         currentIndex: _selectedIndex,
       ),
-      
+      drawer: const UserDrawer(),
     );
   }
   
