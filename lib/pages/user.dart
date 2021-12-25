@@ -7,8 +7,8 @@
 import 'package:flutter/material.dart';
 import 'package:frisbee/common/global.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:frisbee/utils/db_utils.dart';
 import 'package:frisbee/pages/login_page.dart';
+import 'package:frisbee/utils/request_util.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({Key? key}) : super(key: key);
@@ -24,7 +24,8 @@ class _UserDrawerState extends State<UserDrawer> {
   }
 
 
-  void _loginout() {
+  void _loginout() async {
+    var _ = await ApiClient().getNoData('api/logout');
     Global.clearUser();
   }
 

@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:frisbee/common/global.dart';
 import 'package:frisbee/utils/request_util.dart';
+import 'package:frisbee/pages/base_home_page.dart';
 
 class LoginPage extends StatefulWidget {
   final String title;
@@ -83,14 +84,15 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _changeUserInfo(Map? responseData) {
+  bool _changeUserInfo(Map? responseData) {
     var showStr = '';
+    bool success = false;
     if (responseData!.isNotEmpty) {
       var userData = responseData['data'];
       Global.initToken(responseData['token']);
-      var teamsData = userData['teams'];
       Global.initUserAndTeam(userData: userData);
       showStr = "登录成功 \n";
+      success = true;
     } else {
       showStr = "登录失败 \n 账号或密码错误";
     }
@@ -101,12 +103,21 @@ class _LoginPageState extends State<LoginPage> {
             content: Text(showStr),
           );
         });
+    return success;
   }
 
   void _login() async {
     var postBody = {"email": _userName.text, "password": _userPwd.text};
     var data = await ApiClient().post('api/signup', postBody);
-    _changeUserInfo(data);
+    var success = _changeUserInfo(data);
+    if (success) {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+              builder: (context) => const HomePage(
+                    title: "极限飞盘",
+                  )),
+          // ignore: unnecessary_null_comparison
+          (route) => route == null);
+    }
   }
-
 }

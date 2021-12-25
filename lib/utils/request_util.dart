@@ -9,7 +9,7 @@ import 'package:frisbee/common/global.dart';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  get(path, Function f) async {
+  get(path) async {
     var client = http.Client();
     Map<String, String> requestHeaders = {
       'Cookie': 'token=$Global.token;',
@@ -18,7 +18,16 @@ class ApiClient {
     var response = await client.get(url, headers: requestHeaders);
     var _content = response.body;
     var data = jsonDecode(_content);
-    f(data);
+    return data;
+  }
+
+  getNoData(path) async {
+    var client = http.Client();
+    Map<String, String> requestHeaders = {
+      'Cookie': 'token=$Global.token;',
+    };
+    var url = Uri.https('www.ultiplays.com', path);
+    var _ = await client.get(url, headers: requestHeaders);
   }
 
   post(path, Map<String, String> postBody) async {

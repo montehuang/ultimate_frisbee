@@ -55,5 +55,6 @@ class Global {
     currentUser = null;
     _deleteDataToFile('user');
     _deleteDataToFile('teams');
+    _deleteDataToFile('token');
   }
 }
