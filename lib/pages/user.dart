@@ -5,11 +5,10 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:frisbee/common/global.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:frisbee/utils/request_util.dart';
-import 'package:frisbee/models/user.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frisbee/utils/db_utils.dart';
+import 'package:frisbee/pages/login_page.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({Key? key}) : super(key: key);
@@ -18,38 +17,15 @@ class UserDrawer extends StatefulWidget {
   State<UserDrawer> createState() => _UserDrawerState();
 }
 
-User? user = User();
-List<Team> teams = [];
-var dbClient = const DbClient();
-
 class _UserDrawerState extends State<UserDrawer> {
   @override
   void initState() {
     super.initState();
-    _initUser();
   }
 
-  dynamic _getUser() async {
-    var key = 'user';
-    var userData = await dbClient.get(key, DataType.tMap);
-    if (userData != null) {
-      user = User(data: userData);
-    } 
-    return user;
-  }
 
-  Future<dynamic> _initUser() async {
-    return Future.sync(() => _getUser());
-  }
-
-  void _changeUserInfo(data) async {
-    Map<String, dynamic> userData = data['user'];
-    user = User(data: userData);
-    for (var teamData in userData['teams']) {
-      teams.add(Team(data: teamData));
-    }
-    await dbClient.write('user', user);
-    setState(() {});
+  void _loginout() {
+    Global.clearUser();
   }
 
   @override
@@ -61,7 +37,6 @@ class _UserDrawerState extends State<UserDrawer> {
           children: [
             DrawerHeader(
               child: FutureBuilder(
-                  future: _initUser(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     return SizedBox(
                       child: Column(
@@ -72,18 +47,18 @@ class _UserDrawerState extends State<UserDrawer> {
                           SizedBox(
                               width: 50,
                               height: 50,
-                              child: user?.picture == ''
+                              child: Global.currentUser?.picture == ''
                                   ? SvgPicture.asset("assets/player.svg")
                                   : CircleAvatar(
                                       backgroundImage: NetworkImage(
-                                        user?.picture ?? '',
+                                        Global.currentUser?.picture ?? '',
                                       ),
                                       radius: 60,
                                     )),
                           const SizedBox(
                             height: 10,
                           ),
-                          Text(user?.name ?? '')
+                          Text(Global.currentUser?.name ?? '')
                         ],
                       ),
                     );
@@ -93,8 +68,10 @@ class _UserDrawerState extends State<UserDrawer> {
             ListTile(
               title: const Text('我的数据'),
               onTap: () {
-                if (user?.picture.toString() == null) {
-                  ApiClient().get('/api/autologin', _changeUserInfo);
+                if (Global.currentUser != null) {
+                  Navigator.pop(context);
+                  // ApiClient().get('/api/autologin', _changeUserInfo);
+                  // 获取自己的数据
                 } else {
                   Navigator.pop(context);
                 }
@@ -109,7 +86,11 @@ class _UserDrawerState extends State<UserDrawer> {
             ListTile(
               title: const Text('登出'),
               onTap: () {
-                Navigator.pop(context);
+                _loginout();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) =>  const LoginPage(title: "登录",)),
+                  // ignore: unnecessary_null_comparison
+                  (route) => route == null);
               },
             ),
           ],

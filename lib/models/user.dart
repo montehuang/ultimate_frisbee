@@ -5,7 +5,7 @@
  */
 
 class User {
-  User({Map<String, dynamic>? data}) {
+  User({Map? data}) {
     // ignore: unnecessary_null_comparison
     if (data == null) {
       return;
@@ -28,7 +28,7 @@ class User {
   late String? provider = '';
   late String? dateCreated = '';
 
-  Map<String, dynamic> toMap() {
+  Map toMap() {
     return {
       '_id': id,
       'name': name,
@@ -43,7 +43,7 @@ class User {
 }
 
 class Team {
-  Team({Map<String, dynamic>? data}) {
+  Team({Map? data}) {
     // ignore: unnecessary_null_comparison
     if (data == null) {
       return;
@@ -54,7 +54,7 @@ class Team {
   late String? id = '';
   late String? name = '';
 
-  Map<String, dynamic> toMap() {
+  Map toMap() {
     return {
       'id': id,
       'name': name,

@@ -19,19 +19,19 @@ enum DataType {
 class DbClient extends StatelessWidget {
   const DbClient({Key? key}):super(key: key);
 
-  write(String name, dynamic object) async {
+  write(String name, dynamic value) async {
     var prefs = await SharedPreferences.getInstance();
-    if (object is int) {
-      await prefs.setInt(name, object);
-    } else if (object is double) {
-      await prefs.setDouble(name, object);
-    } else if (object is bool) {
-      await prefs.setBool(name, object);
-    } else if (object is String) {
-      await prefs.setString(name, object);
-    } else {
+    if (value is int) {
+      await prefs.setInt(name, value);
+    } else if (value is double) {
+      await prefs.setDouble(name, value);
+    } else if (value is bool) {
+      await prefs.setBool(name, value);
+    } else if (value is String) {
+      await prefs.setString(name, value);
+    } else if (value is Map) {
       try {
-        String raw = jsonEncode(object.toMap());
+        String raw = jsonEncode(value);
         await prefs.setString(name, raw);
       } catch (e) {
         // ignore: avoid_print
@@ -66,9 +66,15 @@ class DbClient extends StatelessWidget {
     return data;
   }
 
+  dynamic delete(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(name)) {
+      prefs.remove(name);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     throw UnimplementedError();
   }
 }
