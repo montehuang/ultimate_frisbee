@@ -6,12 +6,30 @@
 
 import 'package:frisbee/models/user.dart';
 import 'package:frisbee/utils/db_utils.dart';
+import 'package:fk_user_agent/fk_user_agent.dart';
+import 'package:flutter/services.dart';
 
 class Global {
   static User? currentUser = User();
   static List<Team?> teams = [];
   static DbClient dbClient = const DbClient();
-  static String token = '';
+  static String? token = '';
+  static String userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36';
+
+  static dynamic _initUserAgentAsync() async {
+    await FkUserAgent.init();
+    try {
+      userAgent = FkUserAgent.userAgent!;
+    } on PlatformException {
+      userAgent = 'Failed to get platform version.';
+    }
+  }
+
+  static initUserAgentAsync() async {
+    if (userAgent == "") {
+      await _initUserAgentAsync();
+    }
+  }
 
   static dynamic _getDatarFromFile(String keyName) async {
     var data = await dbClient.get(keyName, DataType.tMap);
