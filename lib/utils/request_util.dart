@@ -16,13 +16,14 @@ class ApiClient {
       'Referer': 'https://www.ultiplays.com/',
       'Origin': 'https://www.ultiplays.com',
       'User-Agent': Global.userAgent,
-      'Cookie': 'token=$Global.token;'
     };
-    if (Global.token != null && Global.token!.isNotEmpty) {
-      header['Cookie'] = 'token=$Global.token;';
+    if (Global.token != "") {
+      var token = Global.token;
+      header['Cookie'] = 'token=$token;';
     }
     return header;
   }
+
   get(path) async {
     var client = http.Client();
     Map<String, String> headers = await _getHeaders();
@@ -44,18 +45,19 @@ class ApiClient {
     var headers = await _getHeaders();
     var url = Uri.https('www.ultiplays.com', path);
     var client = http.Client();
-    var response = await client.post(
-        url,
-        headers: headers,
-        body: jsonEncode(postBody));
+    var response =
+        await client.post(url, headers: headers, body: jsonEncode(postBody));
     if (response.statusCode != 200) {
       return {};
     }
     var _content = response.body;
-    var cookieInfo = response.headers['set-cookie'];
-    var cookies = cookieInfo!.split(';');
-    var token = cookies[0].split('=')[1];
-    var data = jsonDecode(_content);
-    return {"data": data, "token": token};
+    if (response.headers.containsKey('set-cookie')) {
+      var cookieInfo = response.headers['set-cookie'];
+      var cookies = cookieInfo!.split(';');
+      var token = cookies[0].split('=')[1];
+      var data = jsonDecode(_content);
+      return {"data": data, "token": token};
+    }
+    return {"data": null, "token": null};
   }
 }

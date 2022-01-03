@@ -9,6 +9,7 @@ import 'package:frisbee/common/global.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frisbee/pages/login_page.dart';
 import 'package:frisbee/utils/request_util.dart';
+import 'package:frisbee/pages/user_statistics.dart';
 
 class UserDrawer extends StatefulWidget {
   const UserDrawer({Key? key}) : super(key: key);
@@ -23,10 +24,31 @@ class _UserDrawerState extends State<UserDrawer> {
     super.initState();
   }
 
-
   void _loginout() async {
     var _ = await ApiClient().getNoData('api/logout');
     Global.clearUser();
+  }
+
+  _getUserStats() async {
+    if (Global.teams.isNotEmpty) {
+      var teamId = Global.teams[0]!.id;
+      var userId = Global.currentUser!.id;
+      var data = await ApiClient().get(
+        '/api/teams/$teamId/users/$userId/statsgames');
+      return data;
+    }
+  }
+
+  _processData() async {
+    var statsData = await _getUserStats();
+    // 获取自己的数据
+    Navigator.of(context).pop();
+    if (statsData != null) {
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => UserStatsPage(
+                statsData: statsData,
+              )));
+    }
   }
 
   @override
@@ -39,40 +61,38 @@ class _UserDrawerState extends State<UserDrawer> {
             DrawerHeader(
               child: FutureBuilder(
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
-                    return SizedBox(
-                      child: Column(
-                        children: [
-                          const SizedBox(
-                            height: 40,
-                          ),
-                          SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: Global.currentUser?.picture == ''
-                                  ? SvgPicture.asset("assets/player.svg")
-                                  : CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        Global.currentUser?.picture ?? '',
-                                      ),
-                                      radius: 60,
-                                    )),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                          Text(Global.currentUser?.name ?? '')
-                        ],
+                return SizedBox(
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 40,
                       ),
-                    );
-                  }),
+                      SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: Global.currentUser?.picture == ''
+                              ? SvgPicture.asset("assets/player.svg")
+                              : CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    Global.currentUser?.picture ?? '',
+                                  ),
+                                  radius: 60,
+                                )),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Text(Global.currentUser?.name ?? '')
+                    ],
+                  ),
+                );
+              }),
               // padding: const EdgeInsets.only(right: 10, bottom: 50),
             ),
             ListTile(
               title: const Text('我的数据'),
-              onTap: () {
+              onTap: () async {
                 if (Global.currentUser != null) {
-                  Navigator.pop(context);
-                  // ApiClient().get('/api/autologin', _changeUserInfo);
-                  // 获取自己的数据
+                  _processData();
                 } else {
                   Navigator.pop(context);
                 }
@@ -89,9 +109,12 @@ class _UserDrawerState extends State<UserDrawer> {
               onTap: () {
                 _loginout();
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) =>  const LoginPage(title: "登录",)),
-                  // ignore: unnecessary_null_comparison
-                  (route) => route == null);
+                    MaterialPageRoute(
+                        builder: (context) => const LoginPage(
+                              title: "登录",
+                            )),
+                    // ignore: unnecessary_null_comparison
+                    (route) => route == null);
               },
             ),
           ],

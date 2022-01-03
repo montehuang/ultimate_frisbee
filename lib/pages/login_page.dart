@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
     bool success = false;
     if (responseData!.isNotEmpty) {
       var userData = responseData['data'];
-      Global.initToken(responseData['token']);
+      Global.initToken(newToken:responseData['token']);
       Global.initUserAndTeam(userData: userData);
       showStr = "登录成功 \n";
       success = true;

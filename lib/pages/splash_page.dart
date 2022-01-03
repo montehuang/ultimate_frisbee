@@ -22,8 +22,9 @@ class SplashState extends State<SplashScreen> with TickerProviderStateMixin {
   initState() {
     super.initState();
     Global.initUserAndTeam();
+    Global.initToken();
     Future.delayed(const Duration(seconds: 2), () {
-      if (Global.currentUser?.id == '') {
+      if (Global.token.isEmpty) {
         // 登录界面
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(

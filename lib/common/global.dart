@@ -13,7 +13,7 @@ class Global {
   static User? currentUser = User();
   static List<Team?> teams = [];
   static DbClient dbClient = const DbClient();
-  static String? token = '';
+  static String token = '';
   static String userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36';
 
   static dynamic _initUserAgentAsync() async {
@@ -31,13 +31,13 @@ class Global {
     }
   }
 
-  static dynamic _getDatarFromFile(String keyName) async {
-    var data = await dbClient.get(keyName, DataType.tMap);
+  static dynamic _getDatarFromFile(String keyName, DataType dataType) async {
+    var data = await dbClient.get(keyName, dataType);
     return data;
   }
 
   static void _writeDataToFile(String keyName, dynamic object) async {
-    await dbClient.write('user', object);
+    await dbClient.write(keyName, object);
   }
 
   static void _deleteDataToFile(String keyName) async {
@@ -46,7 +46,7 @@ class Global {
 
   static void initUserAndTeam({Map? userData}) async {
     if (userData == null || userData.isEmpty) {
-      userData = await _getDatarFromFile('user');
+      userData = await _getDatarFromFile('user',  DataType.tMap);
     } else {
       // userData.remove(key)
       _writeDataToFile('user', userData);
@@ -60,9 +60,10 @@ class Global {
     }
   }
 
-  static void initToken(String? newToken) {
-    if (newToken!.isEmpty) {
-      token = _getDatarFromFile('token');
+  static void initToken({String? newToken}) async {
+    if (newToken == null || newToken.isEmpty) {
+      var tokenFromFile = await _getDatarFromFile('token', DataType.tString);
+      token = tokenFromFile ?? "";
     } else {
       token = newToken;
       _writeDataToFile('token', newToken);

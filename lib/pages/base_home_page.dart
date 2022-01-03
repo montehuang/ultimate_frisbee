@@ -22,7 +22,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   List tabs = [
     const SubHomePage(content: "11", icon: Icons.home, header: "主页"), 
     const BookPage(content: "22", icon: Icons.book, header: "战术"), 
-    const PlayerPage(content: "33", icon: Icons.card_membership, header: "成员"), 
+    const PlayerPage(icon: Icons.card_membership, header: "成员"), 
   ];
   int _selectedIndex = 0;
   @override
@@ -40,7 +40,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Ultimate Frisbee',)),
-      body: Text(tabs[_selectedIndex].content, style: const TextStyle(color: Colors.green),),
+      body: tabs[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: tabs.map((e) => BottomNavigationBarItem(icon: Icon(e.icon), label: e.header)).toList(),
         onTap: _onTap,
