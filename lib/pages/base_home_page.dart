@@ -5,7 +5,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:frisbee/pages/user.dart';
-import 'home_page.dart';
+import 'sub_home_page.dart';
 import 'player.dart';
 import 'playbook.dart';
 

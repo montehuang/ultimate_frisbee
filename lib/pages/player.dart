@@ -84,38 +84,43 @@ class _PlayerPageState extends State<PlayerPage> {
           _processData(user);
         },
         child: Card(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 15),
-            child: Row(
-              children: [
-                const SizedBox(
-                  width: 15,
-                ),
-                SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: user['picture'] == null
-                        ? SvgPicture.asset("assets/player.svg")
-                        : CircleAvatar(
-                            backgroundImage: NetworkImage(
-                              user['picture'] ?? '',
-                            ),
-                            radius: 60,
-                          )),
-                const SizedBox(
-                  width: 20,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: infoWidgets,
-                ),
-                const Spacer(),
-                Container(child: Row(
-                  children: statusWidgets,
-                ), transform: Matrix4.translationValues(0, -20, 0),)
-                
-              ],
+          // color: Colors.white,
+          child: InkWell(
+            splashColor: Colors.blue.withAlpha(50),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 15),
+              child: Row(
+                children: [
+                  const SizedBox(
+                    width: 15,
+                  ),
+                  SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: user['picture'] == null
+                          ? SvgPicture.asset("assets/player.svg")
+                          : CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                user['picture'] ?? '',
+                              ),
+                              radius: 60,
+                            )),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: infoWidgets,
+                  ),
+                  const Spacer(),
+                  Container(
+                    child: Row(
+                      children: statusWidgets,
+                    ),
+                    transform: Matrix4.translationValues(0, -20, 0),
+                  )
+                ],
+              ),
             ),
           ),
         ),
