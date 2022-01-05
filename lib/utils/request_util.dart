@@ -6,7 +6,6 @@
 import 'dart:convert';
 import 'package:frisbee/common/global.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter/services.dart';
 
 class ApiClient {
   _getHeaders() async {
@@ -24,12 +23,12 @@ class ApiClient {
     return header;
   }
 
-  get(path) async {
+  get(path, {params}) async {
     var client = http.Client();
     Map<String, String> headers = await _getHeaders();
-    var url = Uri.https('www.ultiplays.com', path);
-    var response = await client.get(url, headers: headers);
-    var _content = response.body;
+    var url = Uri.https('www.ultiplays.com', path, params);
+    var response = await client.get(url, headers: headers, );
+    var _content = utf8.decode(response.bodyBytes);
     var data = jsonDecode(_content);
     return data;
   }

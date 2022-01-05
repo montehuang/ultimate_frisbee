@@ -7,8 +7,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:frisbee/common/events.dart';
 import 'package:frisbee/common/global.dart';
+import 'package:frisbee/custom_widgets/gradient_circular_progress.dart';
+import 'package:frisbee/utils/convert_ultil.dart';
 import 'package:frisbee/utils/event_util.dart';
 import 'package:frisbee/utils/request_util.dart';
+import 'package:flutter_svg/svg.dart';
 
 
 class SubHomePage extends StatefulWidget {
@@ -34,6 +37,18 @@ class _SubHomePageState extends State<SubHomePage>
     }
   }
 
+  Future _getMessageData() async {
+    if (Global.teams.isNotEmpty) {
+      var teamId = Global.teams[0]!.id;
+      var params = {
+        'limit': '5',
+        'sort': 'desc'
+      };
+      var data = await ApiClient().get('/api/teams/$teamId/messages', params: params);
+      return data;
+    }
+  }
+
   Future _getUserStats() async {
     if (Global.teams.isNotEmpty) {
       var teamId = Global.teams[0]!.id;
@@ -46,7 +61,7 @@ class _SubHomePageState extends State<SubHomePage>
   }
 
   Future _getAllDatas() async {
-    return Future.wait([_getTeamData(), _getUserStats()]);
+    return Future.wait([_getTeamData(), _getUserStats(), _getMessageData()]);
   }
 
   var _getAllData;
@@ -100,7 +115,30 @@ class _SubHomePageState extends State<SubHomePage>
     );
   }
 
-  _buildWidgets(team, stat) {
+  List<Widget> _buildMessages(messages) {
+    List<Widget> list = [];
+    //i<5, pass your dynamic limit as per your requirment 
+    for (var message in messages) {
+      var messageRow = Row(children: [
+      message['userPicture'] == null
+                              ? SvgPicture.asset("assets/player.svg", width: 20,)
+                              : CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    message['userPicture'],
+                                  ),
+                                  radius: 10,
+                                ),
+                              const SizedBox(width: 5,),
+        Text(message['userName'], style: const TextStyle(fontSize: 10),),
+        const SizedBox(width: 10,),
+        Text(message['text'], style: const TextStyle(fontSize: 10),maxLines: 1, overflow: TextOverflow.ellipsis,),
+      ],);
+      list.add(messageRow);
+    }
+    return list;
+  }
+
+  _buildWidgets(team, stat, messages) {
     _animationController.forward();
     Future.delayed(const Duration(milliseconds: 1000), () {
       _backAnimationController.forward();
@@ -119,6 +157,7 @@ class _SubHomePageState extends State<SubHomePage>
     }
     return Center(
       child: ListView(
+        shrinkWrap: true,
         children: [
           Card(
             color: Colors.white,
@@ -204,6 +243,9 @@ class _SubHomePageState extends State<SubHomePage>
               ),
             ),
           ),
+          Card(
+            child: Container(margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20), height: 130, child: Column(children: _buildMessages(messages), mainAxisAlignment: MainAxisAlignment.spaceAround,),)  
+          )
         ],
       ),
     );
@@ -221,9 +263,11 @@ class _SubHomePageState extends State<SubHomePage>
             // 请求失败，显示错误
             return Text("Error: ${snapshot.error}");
           } else {
-            var team, stat;
+            var team, stat, messages;
             for (var one in snapshot.data) {
-              if (one['type'] == 'team') {
+              if (one is List) {
+                messages = one;
+              } else if (one['type'] == 'team') {
                 team = one;
               } else {
                 stat = one;
@@ -232,7 +276,7 @@ class _SubHomePageState extends State<SubHomePage>
             return Container(
               child: Builder(
                 builder: (BuildContext context) {
-                  return _buildWidgets(team, stat);
+                  return _buildWidgets(team, stat, messages);
                 },
               ),
             );
@@ -247,141 +291,3 @@ class _SubHomePageState extends State<SubHomePage>
   }
 }
 
-class GradientCircularProgressIndicator extends StatelessWidget {
-  GradientCircularProgressIndicator(
-      {this.strokeWidth = 2.0,
-      required this.radius,
-      required this.colors,
-      required this.stops,
-      this.strokeCapRound = false,
-      this.backgroundColor = const Color(0xFFEEEEEE),
-      this.totalAngle = 2 * pi,
-      this.startAngle = 0.0,
-      required this.value});
-
-  ///粗细
-  final double strokeWidth;
-
-  /// 圆的半径
-  final double radius;
-
-  ///两端是否为圆角
-  final bool strokeCapRound;
-
-  /// 当前进度，取值范围 [0.0-1.0]
-  final double value;
-
-  /// 进度条背景色
-  final Color backgroundColor;
-
-  /// 进度条的总弧度，2*PI为整圆，小于2*PI则不是整圆
-  final double totalAngle;
-
-  /// 进度条的起始弧度，2*PI为整圆，小于2*PI则不是整圆
-  final double startAngle;
-
-  /// 渐变色数组
-  final List<Color> colors;
-
-  /// 渐变色的终止点，对应colors属性
-  final List<double> stops;
-
-  @override
-  Widget build(BuildContext context) {
-    double _offset = .0;
-    // 如果两端为圆角，则需要对起始位置进行调整，否则圆角部分会偏离起始位置
-    // 下面调整的角度的计算公式是通过数学几何知识得出，读者有兴趣可以研究一下为什么是这样
-    if (strokeCapRound) {
-      _offset = asin(strokeWidth / (radius * 2 - strokeWidth));
-    }
-    var _colors = colors;
-    if (_colors == null) {
-      Color color = Theme.of(context).accentColor;
-      _colors = [color, color];
-    }
-    return Transform.rotate(
-      angle: -pi / 2.0 - _offset,
-      child: CustomPaint(
-          size: Size.fromRadius(radius),
-          painter: _GradientCircularProgressPainter(
-            strokeWidth: strokeWidth,
-            strokeCapRound: strokeCapRound,
-            backgroundColor: backgroundColor,
-            value: value,
-            total: totalAngle,
-            startAngle: startAngle,
-            radius: radius,
-            colors: _colors,
-            stops: [],
-          )),
-    );
-  }
-}
-
-//实现画笔
-class _GradientCircularProgressPainter extends CustomPainter {
-  _GradientCircularProgressPainter(
-      {this.strokeWidth = 10.0,
-      this.startAngle = 0.0,
-      this.strokeCapRound = false,
-      this.backgroundColor = const Color(0xFFEEEEEE),
-      required this.radius,
-      this.total = 2 * pi,
-      required this.colors,
-      required this.stops,
-      required this.value});
-
-  final double strokeWidth;
-  final bool strokeCapRound;
-  final double value;
-  final Color backgroundColor;
-  final List<Color> colors;
-  final double total;
-  final double radius;
-  final List<double> stops;
-  final double startAngle;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (radius != null) {
-      size = Size.fromRadius(radius);
-    }
-    double _offset = strokeWidth / 2.0;
-    double _value = (value);
-    _value = _value.clamp(.0, 1.0) * total;
-    double _start = startAngle;
-
-    if (strokeCapRound) {
-      _start = _start + asin(strokeWidth / (size.width - strokeWidth));
-    }
-
-    Rect rect = Offset(_offset, _offset) &
-        Size(size.width - strokeWidth, size.height - strokeWidth);
-
-    var paint = Paint()
-      ..strokeCap = strokeCapRound ? StrokeCap.round : StrokeCap.butt
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = true
-      ..strokeWidth = strokeWidth;
-
-    // 先画背景
-    if (backgroundColor != Colors.transparent) {
-      paint.color = backgroundColor;
-      canvas.drawArc(rect, _start, total, false, paint);
-    }
-    // 再画前景，应用渐变
-    if (_value > 0) {
-      paint.shader = SweepGradient(
-        startAngle: 0.0,
-        endAngle: _value,
-        colors: colors,
-        // stops: stops,
-      ).createShader(rect);
-
-      canvas.drawArc(rect, _start, _value, false, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
-}
