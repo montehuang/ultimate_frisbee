@@ -59,7 +59,22 @@ class Global {
       }
     }
   }
-
+  static void initTeams(List teams) async {
+    if (teams.isEmpty) {
+      teams = await _getDatarFromFile('teams', DataType.tMap);
+    } else {
+      _writeDataToFile('teams', teams);
+    }
+    if (teams.isNotEmpty) {
+      List<Team?> newTeams = [];
+      for (var teamData in teams) {
+        var team = Team(data: teamData);
+        newTeams.add(team);
+      }
+      Global.teams = newTeams;
+    }
+  }
+  
   static void initToken({String? newToken}) async {
     if (newToken == null || newToken.isEmpty) {
       var tokenFromFile = await _getDatarFromFile('token', DataType.tString);

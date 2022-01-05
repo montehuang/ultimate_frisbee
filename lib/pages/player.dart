@@ -60,7 +60,7 @@ class _PlayerPageState extends State<PlayerPage> {
     List<Widget> tiles = []; //先建一个数组用于存放循环生成的widget
     Widget content; //单独一个widget组件，用于返回需要生成的内容widget
     for (var user in users) {
-      List<Widget> infoWidgets = [];
+      List<Widget> infoWidgets = [];  
       if (user['name'] != null) {
         infoWidgets.add(Text(user['name']));
       }
@@ -154,6 +154,9 @@ class _PlayerPageState extends State<PlayerPage> {
             return Text("Error: ${snapshot.error}");
           } else {
             var data = snapshot.data;
+            if (data == null) {
+              return Text('获取数据错误');
+            }
             var name = data['name'];
             var users = data['users'];
             var invite = data['invite'];

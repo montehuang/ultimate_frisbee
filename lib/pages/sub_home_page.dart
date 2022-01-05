@@ -8,13 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:frisbee/common/events.dart';
 import 'package:frisbee/common/global.dart';
 import 'package:frisbee/custom_widgets/gradient_circular_progress.dart';
-import 'package:frisbee/utils/convert_ultil.dart';
 import 'package:frisbee/utils/event_util.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SubHomePage extends StatefulWidget {
-  SubHomePage({Key? key, required this.icon, required this.header})
+  const SubHomePage({Key? key, required this.icon, required this.header})
       : super(key: key);
   final IconData icon;
   final String header;
@@ -156,6 +155,9 @@ class _SubHomePageState extends State<SubHomePage>
   }
 
   _buildWidgets(team, stat, messages) {
+    if (team == null || stat == null || messages == null) {
+      return Center(child: const Text('获取数据错误'));
+    }
     _animationController.forward();
     Future.delayed(const Duration(milliseconds: 1000), () {
       _backAnimationController.forward();
@@ -288,6 +290,9 @@ class _SubHomePageState extends State<SubHomePage>
           } else {
             var team, stat, messages;
             for (var one in snapshot.data) {
+              if (one == null) {
+                break;
+              }
               if (one is List) {
                 messages = one;
               } else if (one['type'] == 'team') {
@@ -311,5 +316,11 @@ class _SubHomePageState extends State<SubHomePage>
         }
       },
     ));
+  }
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _backAnimationController.dispose();
+    super.dispose();
   }
 }

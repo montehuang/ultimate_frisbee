@@ -22,11 +22,11 @@ class HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List tabs = [
-    SubHomePage(icon: Icons.home, header: "主页"),
-    const BookPage(content: "22", icon: Icons.book, header: "战术"),
+    const SubHomePage(icon: Icons.home, header: "主页"),
+    const BookPage(icon: Icons.book, header: "战术"),
     const PlayerPage(icon: Icons.card_membership, header: "成员"),
   ];
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   @override
   void initState() {
     super.initState();

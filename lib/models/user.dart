@@ -50,14 +50,20 @@ class Team {
     }
     id = data['id'];
     name = data['name'];
+    users = data['users'] ?? [];
+    tags = data['tags'] ?? [];
   }
   late String? id = '';
   late String? name = '';
+  late List<Map<String, dynamic>>? users;
+  late List<Map<String, dynamic>>? tags;
 
   Map toMap() {
     return {
       'id': id,
       'name': name,
+      'users': users,
+      'tags': tags,
     };
   }
 }
