@@ -4,7 +4,9 @@
  * @Description: 
  */
 import 'package:flutter/material.dart';
+import 'package:frisbee/common/events.dart';
 import 'package:frisbee/pages/user.dart';
+import 'package:frisbee/utils/event_util.dart';
 import 'sub_home_page.dart';
 import 'player.dart';
 import 'playbook.dart';
@@ -16,19 +18,24 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
-
+class HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List tabs = [
-    const SubHomePage(content: "11", icon: Icons.home, header: "主页"), 
-    const BookPage(content: "22", icon: Icons.book, header: "战术"), 
-    const PlayerPage(icon: Icons.card_membership, header: "成员"), 
+    SubHomePage(icon: Icons.home, header: "主页"),
+    const BookPage(content: "22", icon: Icons.book, header: "战术"),
+    const PlayerPage(icon: Icons.card_membership, header: "成员"),
   ];
   int _selectedIndex = 0;
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: tabs.length, vsync: this);
+    EventBusUtil.listen((BottomBarSelectIndexEvent event) {
+      setState(() {
+        _selectedIndex = event.index;
+      });
+});
   }
 
   void _onTap(int index) {
@@ -36,10 +43,14 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
       _selectedIndex = index;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ultimate Frisbee',)),
+      appBar: AppBar(
+          title: const Text(
+        'Ultimate Frisbee',
+      )),
       body: tabs[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: tabs.map((e) => BottomNavigationBarItem(icon: Icon(e.icon), label: e.header)).toList(),
@@ -49,7 +60,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
       drawer: const UserDrawer(),
     );
   }
-  
+
   @override
   void dispose() {
     // 释放资源

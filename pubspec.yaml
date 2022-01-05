@@ -49,6 +49,7 @@ dev_dependencies:
   http: ^0.13.4
   shared_preferences: ^2.0.11
   fk_user_agent: ^2.0.1
+  event_bus: ^2.0.0
   test: 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

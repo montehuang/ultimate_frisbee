@@ -22,6 +22,12 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
+  var _featureGetPlayers;
+  @override
+  void initState() {
+    _featureGetPlayers = _getTeamData();
+    super.initState();
+  }
   _getTeamData() async {
     if (Global.teams.isNotEmpty) {
       var teamId = Global.teams[0]!.id;
@@ -139,7 +145,7 @@ class _PlayerPageState extends State<PlayerPage> {
   Widget build(BuildContext context) {
     return Center(
         child: FutureBuilder<dynamic>(
-      future: _getTeamData(),
+      future: _featureGetPlayers,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         // 请求已结束
         if (snapshot.connectionState == ConnectionState.done) {
@@ -201,7 +207,7 @@ class _PlayerPageState extends State<PlayerPage> {
           }
         } else {
           // 请求未结束，显示loading
-          return CircularProgressIndicator();
+          return const CircularProgressIndicator();
         }
       },
     ));
