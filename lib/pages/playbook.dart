@@ -68,13 +68,13 @@ class _BookPageState extends State<BookPage>
         if (tagInfo['name'] == '未看' && hasNotSeen) {
           tab = Tab(
               child: Stack(
-            children: [
+                clipBehavior: Clip.none, children: [
               const Positioned(
-                  right: -5,
-                  top: -5,
+                  right: -3,
+                  top: -3,
                   child: Icon(
-                    Icons.bookmark,
-                    size: 10,
+                    Icons.trip_origin,
+                    size: 7,
                     color: Colors.red,
                   )),
               Text(tagInfo['name']),
