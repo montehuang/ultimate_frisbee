@@ -8,14 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:frisbee/common/events.dart';
 import 'package:frisbee/common/global.dart';
 import 'package:frisbee/custom_widgets/gradient_circular_progress.dart';
-import 'package:frisbee/utils/convert_ultil.dart';
 import 'package:frisbee/utils/event_util.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 
-
 class SubHomePage extends StatefulWidget {
-  SubHomePage({Key? key, required this.icon, required this.header})
+  const SubHomePage({Key? key, required this.icon, required this.header})
       : super(key: key);
   final IconData icon;
   final String header;
@@ -40,11 +38,9 @@ class _SubHomePageState extends State<SubHomePage>
   Future _getMessageData() async {
     if (Global.teams.isNotEmpty) {
       var teamId = Global.teams[0]!.id;
-      var params = {
-        'limit': '5',
-        'sort': 'desc'
-      };
-      var data = await ApiClient().get('/api/teams/$teamId/messages', params: params);
+      var params = {'limit': '5', 'sort': 'desc'};
+      var data =
+          await ApiClient().get('/api/teams/$teamId/messages', params: params);
       return data;
     }
   }
@@ -117,28 +113,51 @@ class _SubHomePageState extends State<SubHomePage>
 
   List<Widget> _buildMessages(messages) {
     List<Widget> list = [];
-    //i<5, pass your dynamic limit as per your requirment 
+    //i<5, pass your dynamic limit as per your requirment
     for (var message in messages) {
-      var messageRow = Row(children: [
-      message['userPicture'] == null
-                              ? SvgPicture.asset("assets/player.svg", width: 20,)
-                              : CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    message['userPicture'],
-                                  ),
-                                  radius: 10,
-                                ),
-                              const SizedBox(width: 5,),
-        Text(message['userName'], style: const TextStyle(fontSize: 10),),
-        const SizedBox(width: 10,),
-        Text(message['text'], style: const TextStyle(fontSize: 10),maxLines: 1, overflow: TextOverflow.ellipsis,),
-      ],);
+      var messageRow = Row(
+        children: [
+          message['userPicture'] == null
+              ? SvgPicture.asset(
+                  "assets/player.svg",
+                  width: 20,
+                )
+              : CircleAvatar(
+                  backgroundImage: NetworkImage(
+                    message['userPicture'],
+                  ),
+                  radius: 10,
+                ),
+          const SizedBox(
+            width: 5,
+          ),
+          Text(
+            message['userName'],
+            style: const TextStyle(fontSize: 13),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          Flexible(
+              child: Container(
+            padding: const EdgeInsets.only(right: 10.0),
+            child: Text(
+              message['text'],
+              style: const TextStyle(fontSize: 13),
+              overflow: TextOverflow.ellipsis,
+            ),
+          )),
+        ],
+      );
       list.add(messageRow);
     }
     return list;
   }
 
   _buildWidgets(team, stat, messages) {
+    if (team == null || stat == null || messages == null) {
+      return Center(child: const Text('获取数据错误'));
+    }
     _animationController.forward();
     Future.delayed(const Duration(milliseconds: 1000), () {
       _backAnimationController.forward();
@@ -244,8 +263,14 @@ class _SubHomePageState extends State<SubHomePage>
             ),
           ),
           Card(
-            child: Container(margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20), height: 130, child: Column(children: _buildMessages(messages), mainAxisAlignment: MainAxisAlignment.spaceAround,),)  
-          )
+              child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            height: 130,
+            child: Column(
+              children: _buildMessages(messages),
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            ),
+          ))
         ],
       ),
     );
@@ -265,6 +290,9 @@ class _SubHomePageState extends State<SubHomePage>
           } else {
             var team, stat, messages;
             for (var one in snapshot.data) {
+              if (one == null) {
+                break;
+              }
               if (one is List) {
                 messages = one;
               } else if (one['type'] == 'team') {
@@ -289,5 +317,10 @@ class _SubHomePageState extends State<SubHomePage>
       },
     ));
   }
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _backAnimationController.dispose();
+    super.dispose();
+  }
 }
-
