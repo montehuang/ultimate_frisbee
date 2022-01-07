@@ -144,7 +144,7 @@ class _BookPageState extends State<BookPage>
       for (var book in books) {
         var card = Card(
           color: Colors.grey.shade100,
-          elevation: 3,
+          elevation: 2,
           shadowColor: Colors.grey,
           margin: const EdgeInsets.symmetric(vertical: 10),
           child: Container(
