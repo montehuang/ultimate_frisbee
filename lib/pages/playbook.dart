@@ -5,6 +5,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:frisbee/common/global.dart';
+import 'package:frisbee/pages/book_details.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -142,110 +143,118 @@ class _BookPageState extends State<BookPage>
       var books = _bookMap[tagInfo['id']];
       List<Widget> cards = [];
       for (var book in books) {
-        var card = Card(
-          color: Colors.grey.shade100,
-          elevation: 2,
-          shadowColor: Colors.grey,
-          margin: const EdgeInsets.symmetric(vertical: 10),
-          child: Container(
+        var card = GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => BookDetailPage(book: book)));
+          },
+          child: Card(
+            color: Colors.grey.shade100,
+            elevation: 2,
+            shadowColor: Colors.grey,
             margin: const EdgeInsets.symmetric(vertical: 10),
-            height: 190,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book['name'],
-                      style: const TextStyle(fontSize: 20),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Builder(builder: (context) {
-                      if (book['tags']?.isEmpty ?? true) {
-                        return const Text('没有标签',
-                            style: TextStyle(fontStyle: FontStyle.italic));
-                      } else {
-                        List<Widget> chips = [];
-                        for (var tagId in book?['tags'] ?? []) {
-                          var tagName = _tagMap[tagId] ?? "";
-                          chips.add(
-                            Container(
-                                margin: EdgeInsets.only(right: 5),
-                                child: Chip(
-                                  side: const BorderSide(
-                                      width: 0.3, color: Colors.grey),
-                                  label: Text(tagName,
-                                      style: const TextStyle(fontSize: 12)),
-                                  backgroundColor: Colors.blue.shade50,
-                                )),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              height: 190,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        book['name'],
+                        style: const TextStyle(fontSize: 20),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Builder(builder: (context) {
+                        if (book['tags']?.isEmpty ?? true) {
+                          return const Text('没有标签',
+                              style: TextStyle(fontStyle: FontStyle.italic));
+                        } else {
+                          List<Widget> chips = [];
+                          for (var tagId in book?['tags'] ?? []) {
+                            var tagName = _tagMap[tagId] ?? "";
+                            chips.add(
+                              Container(
+                                  margin: EdgeInsets.only(right: 5),
+                                  child: Chip(
+                                    side: const BorderSide(
+                                        width: 0.3, color: Colors.grey),
+                                    label: Text(tagName,
+                                        style: const TextStyle(fontSize: 12)),
+                                    backgroundColor: Colors.blue.shade50,
+                                  )),
+                            );
+                          }
+                          return chips.isEmpty
+                              ? Container()
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: chips);
+                        }
+                      }),
+                      Builder(builder: (context) {
+                        if (book['steps']?.isEmpty ?? false) {
+                          return const Text('');
+                        } else {
+                          var desc = book['steps'][0]['descr'];
+                          return Container(
+                            width: 300,
+                            child: Text(
+                              desc,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
+                            ),
                           );
                         }
-                        return chips.isEmpty
-                            ? Container()
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: chips);
-                      }
-                    }),
-                    Builder(builder: (context) {
-                      if (book['steps']?.isEmpty ?? false) {
-                        return const Text('');
-                      } else {
-                        var desc = book['steps'][0]['descr'];
-                        return Container(
-                          width: 300,
-                          child: Text(
-                            desc,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            softWrap: true,
-                          ),
+                      }),
+                      Builder(builder: (context) {
+                        var viewedNum = book['viewedTotal'].toString();
+                        List<Widget> avatars = [];
+                        for (var userId in book['viewed'] ?? []) {
+                          var user = _userMap[userId] ?? {};
+                          if (user.isNotEmpty) {
+                            var avatar = user['picture'] == null
+                                ? SvgPicture.asset(
+                                    "assets/player.svg",
+                                    width: 30,
+                                  )
+                                : CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      user['picture'],
+                                    ),
+                                    radius: 15,
+                                  );
+
+                            avatars.add(
+                                Tooltip(message: user['name'], child: avatar));
+                          }
+                        }
+                        if (avatars.isNotEmpty) {
+                          avatars.add(
+                              const Icon(Icons.more_horiz, color: Colors.grey));
+                        }
+                        Widget viewNumWidget = Tooltip(
+                          message: '已看人数:' + viewedNum,
+                          child: Chip(
+                              avatar: Icon(
+                                Icons.done,
+                                color: Colors.blue.shade400,
+                              ),
+                              label: Text(viewedNum)),
                         );
-                      }
-                    }),
-                    Builder(builder: (context) {
-                      var viewedNum = book['viewedTotal'].toString();
-                      List<Widget> avatars = [];
-                      for (var userId in book['viewed'] ?? []) {
-                        var user = _userMap[userId] ?? {};
-                        if (user.isNotEmpty) {
-                          var avatar = user['picture'] == null
-                              ? SvgPicture.asset(
-                                  "assets/player.svg",
-                                  width: 30,
-                                )
-                              : CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    user['picture'],
-                                  ),
-                                  radius: 15,
-                                );
-                          
-                          avatars.add(Tooltip(message: user['name'], child:avatar));
-                        }
-                      }
-                      if (avatars.isNotEmpty) {
-                        avatars.add(const Icon(Icons.more_horiz, color: Colors.grey));
-                      }
-                      Widget viewNumWidget = Tooltip(
-                            message: '已看人数:' + viewedNum,
-                            child: Chip(
-                                avatar: Icon(
-                                  Icons.done,
-                                  color: Colors.blue.shade400,
-                                ),
-                                label: Text(viewedNum)),
-                          );
-                          avatars.insert(0, viewNumWidget);
-                      return Row(
-                        children: avatars,
-                      );
-                    })
-                  ],
-                ),
-              ],
+                        avatars.insert(0, viewNumWidget);
+                        return Row(
+                          children: avatars,
+                        );
+                      })
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
