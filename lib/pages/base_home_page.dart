@@ -10,6 +10,7 @@ import 'package:frisbee/utils/event_util.dart';
 import 'sub_home_page.dart';
 import 'player.dart';
 import 'playbook.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key, required this.title}) : super(key: key);
@@ -35,7 +36,7 @@ class HomePageState extends State<HomePage>
       setState(() {
         _selectedIndex = event.index;
       });
-});
+    });
   }
 
   void _onTap(int index) {
@@ -46,6 +47,13 @@ class HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
+    ScreenUtil.init(
+        BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width,
+            maxHeight: MediaQuery.of(context).size.height),
+        designSize: const Size(390, 844),
+        minTextAdapt: true,
+        orientation: Orientation.portrait);
     return Scaffold(
       appBar: AppBar(
           title: const Text(
@@ -53,7 +61,10 @@ class HomePageState extends State<HomePage>
       )),
       body: tabs[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
-        items: tabs.map((e) => BottomNavigationBarItem(icon: Icon(e.icon), label: e.header)).toList(),
+        items: tabs
+            .map((e) =>
+                BottomNavigationBarItem(icon: Icon(e.icon), label: e.header))
+            .toList(),
         onTap: _onTap,
         currentIndex: _selectedIndex,
       ),

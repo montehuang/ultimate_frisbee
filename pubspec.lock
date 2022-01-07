@@ -146,6 +146,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.4"
+  flutter_screenutil:
+    dependency: "direct dev"
+    description:
+      name: flutter_screenutil
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "5.0.3"
   flutter_svg:
     dependency: "direct dev"
     description:
