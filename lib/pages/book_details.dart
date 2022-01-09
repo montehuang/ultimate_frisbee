@@ -5,6 +5,7 @@
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frisbee/custom_widgets/field_item_widget.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frisbee/common/global.dart';
@@ -89,8 +90,8 @@ class _BookDetailPageState extends State<BookDetailPage>
                       child: Text('获取战术出错'),
                     );
                   } else {
-                    return const Center(
-                      child: Text('获取战术成功'),
+                    return Center(
+                      child: FieldItemWidget(posX: 0, posY: 0, color: Colors.redAccent, showText: '10', isSelected: false,),
                     );
                   }
                 } else {
@@ -108,8 +109,8 @@ class _BookDetailPageState extends State<BookDetailPage>
                       child: Text('获取消息出错'),
                     );
                   } else {
-                    return const Center(
-                      child: Text('获取消息成功'),
+                    return Center(
+                      child: FieldItemWidget(posX: 0, posY: 0, shape: ItemShape.Triangle, color: Colors.redAccent, isSelected: false,),
                     );
                   }
                 } else {
