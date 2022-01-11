@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
+import 'package:frisbee/custom_widgets/strategy_board.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frisbee/common/global.dart';
@@ -90,9 +91,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                       child: Text('获取战术出错'),
                     );
                   } else {
-                    return Center(
-                      child: FieldItemWidget(posX: 0, posY: 0, color: Colors.redAccent, showText: '10', isSelected: false,),
-                    );
+                    return Center(child: Padding(padding: EdgeInsets.only(left: 0.r, right: 0.r, top: 0.r, bottom: 100.r), child: StrategyBoard(data: snapshot.data),)) ;
                   }
                 } else {
                   return const Center(
