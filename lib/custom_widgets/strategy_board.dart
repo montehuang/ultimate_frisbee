@@ -29,9 +29,9 @@ Widget _createItemWidgets(steps, players) {
   }
   for (var key in keys) {
     var width = 330.r;
-    var height = 550.r;
-    var x = steps[0][key]['xend'] * width / 100;
-    var y = steps[0][key]['yend'] * height / 100;
+    var height = 650.r;
+    var x = steps[0][key]['xend'] * width / 100 - 15.r;
+    var y = steps[0][key]['yend'] * height / 100 - 15.r;
     late Widget item;
     if (key.contains('a')) {
       item = Positioned(
@@ -61,7 +61,7 @@ Widget _createItemWidgets(steps, players) {
     items.add(item);
   }
   // print(steps[0]);
-  return Stack(children: items);
+  return Stack(clipBehavior: Clip.none, children: items,);
 }
 
 class _StrategyBoardState extends State<StrategyBoard>
