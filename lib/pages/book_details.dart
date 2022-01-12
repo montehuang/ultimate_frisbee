@@ -63,26 +63,13 @@ class _BookDetailPageState extends State<BookDetailPage>
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        toolbarHeight: 30,
-        titleSpacing: 0,
+        // centerTitle: false,
+        actions: [Row(children: [Text('讨论'), IconButton(onPressed: (){_showModalBottomSheet(context);}, icon: Icon(Icons.mouse_sharp))],)],
         title: Text(
           widget.book['name'],
         ),
-        bottom: TabBar(
-          // padding: EdgeInsets.symmetric(horizontal: 20),
-          controller: _controller,
-          tabs: [
-            for (var tab in tabs)
-              Center(
-                child: Text(tab),
-              )
-          ],
-        ),
       ),
-      body: TabBarView(
-        controller: _controller,
-        children: [
-          FutureBuilder(
+      body: FutureBuilder(
               future: _futureGetBook,
               builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
@@ -98,28 +85,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                     child: CircularProgressIndicator(),
                   );
                 }
-              }),
-          FutureBuilder(
-              future: _futureGetMessage,
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text('获取消息出错'),
-                    );
-                  } else {
-                    return Center(
-                      child: FieldItemWidget(posX: 0, posY: 0, shape: ItemShape.Triangle, color: Colors.redAccent, isSelected: false,),
-                    );
-                  }
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
               })
-        ],
-      ),
     );
   }
 
@@ -137,5 +103,48 @@ class _BookDetailPageState extends State<BookDetailPage>
     _controller.dispose();
     _tabIndex.dispose();
     super.dispose();
+  }
+
+  void _showModalBottomSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) {
+        return _BottomSheetContent();
+      },
+    );
+  }
+}
+
+
+class _BottomSheetContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 700.r,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 70.r,
+            child: Center(
+              child: Text(
+                "xxxxxxxxxx",
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+          const Divider(thickness: 1),
+          Expanded(
+            child: ListView.builder(
+              itemCount: 21,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text('yyyyyyy'),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

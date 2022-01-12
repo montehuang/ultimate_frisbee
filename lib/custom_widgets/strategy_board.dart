@@ -19,7 +19,6 @@ class StrategyBoard extends StatefulWidget {
 
 Widget _createItemWidgets(steps, players) {
   List<Widget> items = [];
-
   var keys = [];
   for (var key in players.keys) {
     for (var index in players[key]) {
@@ -29,7 +28,7 @@ Widget _createItemWidgets(steps, players) {
   }
   for (var key in keys) {
     var width = 330.r;
-    var height = 650.r;
+    var height = 554.r;
     var x = steps[0][key]['xend'] * width / 100 - 15.r;
     var y = steps[0][key]['yend'] * height / 100 - 15.r;
     late Widget item;
@@ -69,12 +68,12 @@ class _StrategyBoardState extends State<StrategyBoard>
   @override
   Widget build(BuildContext context) {
     var width = 330.r;
-    var height = 650.r;
+    var height = 554.r;
     return Builder(builder: (context) {
       return Container(
           width: width,
           height: height,
-          color: Colors.blue,
+          decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
           child:
               _createItemWidgets(widget.data['steps'], widget.data['players']));
     });

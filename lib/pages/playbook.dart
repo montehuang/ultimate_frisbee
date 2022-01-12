@@ -139,10 +139,13 @@ class _BookPageState extends State<BookPage>
 
   List<Widget> _createBookBodies() {
     List<Widget> widgets = [];
+    if (_showTagInfos == null) {
+      return widgets;
+    }
     _showTagInfos.forEach((tagInfo) {
       var books = _bookMap[tagInfo['id']];
       List<Widget> cards = [];
-      for (var book in books) {
+      for (var book in books??[]) {
         var card = GestureDetector(
           onTap: () {
             Navigator.of(context).push(
