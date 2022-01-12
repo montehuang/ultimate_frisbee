@@ -3,6 +3,7 @@
  * @Date: 2022-01-07
  * @Description: 
  */
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
@@ -25,8 +26,10 @@ class _BookDetailPageState extends State<BookDetailPage>
     with TickerProviderStateMixin, RestorationMixin {
   _BookDetailPageState();
   late TabController _controller;
+  late AnimationController _animationController;
   final RestorableInt _tabIndex = RestorableInt(0);
-
+  final RestorableDouble _currentStep = RestorableDouble(0);
+  Timer? _timer;
   var _futureGetMessage;
   var _futureGetBook;
   @override
@@ -35,6 +38,8 @@ class _BookDetailPageState extends State<BookDetailPage>
     _futureGetMessage = _getMessageData();
     _futureGetBook = _getBookData();
     _controller = TabController(length: 2, vsync: this, initialIndex: 0);
+    _animationController = AnimationController(
+        duration: const Duration(milliseconds: 2000), vsync: this);
     _controller.addListener(() {
       setState(() {
         _tabIndex.value = _controller.index;
@@ -44,7 +49,8 @@ class _BookDetailPageState extends State<BookDetailPage>
 
   Future _getMessageData() async {
     if (widget.book['team'] != null) {
-      var data = await ApiClient().get('/api/teams/${widget.book['team']}/messages');
+      var data =
+          await ApiClient().get('/api/teams/${widget.book['team']}/messages');
       return data;
     }
   }
@@ -61,48 +67,137 @@ class _BookDetailPageState extends State<BookDetailPage>
   Widget build(BuildContext context) {
     final tabs = ['战术', '讨论'];
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        // centerTitle: false,
-        actions: [Row(children: [Text('讨论'), IconButton(onPressed: (){_showModalBottomSheet(context);}, icon: Icon(Icons.mouse_sharp))],)],
-        title: Text(
-          widget.book['name'],
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          // centerTitle: false,
+          actions: [
+            Row(
+              children: [
+                Text('讨论'),
+                IconButton(
+                    onPressed: () {
+                      _showModalBottomSheet(context);
+                    },
+                    icon: Icon(Icons.mouse_sharp))
+              ],
+            )
+          ],
+          title: Text(
+            widget.book['name'],
+          ),
         ),
-      ),
-      body: FutureBuilder(
-              future: _futureGetBook,
-              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: Text('获取战术出错'),
-                    );
-                  } else {
-                    return Center(child: Padding(padding: EdgeInsets.only(left: 0.r, right: 0.r, top: 0.r, bottom: 100.r), child: StrategyBoard(data: snapshot.data),)) ;
-                  }
-                } else {
+        body: FutureBuilder(
+            future: _futureGetBook,
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
                   return const Center(
-                    child: CircularProgressIndicator(),
+                    child: Text('获取战术出错'),
+                  );
+                } else {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Center(
+                          child: Padding(
+                        padding: EdgeInsets.only(
+                            left: 0.r, right: 0.r, top: 0.r, bottom: 0.r),
+                        child: StrategyBoard(
+                          playerMap: snapshot.data['players'],
+                          lastStepMap: snapshot.data['steps'][
+                              _currentStep.value.toInt() == 0
+                                  ? 0
+                                  : _currentStep.value.toInt() - 1],
+                          currentStepMap: snapshot.data['steps']
+                              [_currentStep.value.toInt()],
+                          controller: _animationController.view,
+                        ),
+                      )),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Slider(
+                              value: _currentStep.value,
+                              min: 0,
+                              max: snapshot.data['steps'].length.toDouble() - 1,
+                              divisions: snapshot.data['steps'].length - 1,
+                              label: _currentStep.value.round().toString(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _timer!.cancel();
+                                  _currentStep.value = value;
+                                  _playAnimation();
+                                });
+                              },
+                            ),
+                            flex: 9,
+                          ),
+                          Flexible(
+                            child: IconButton(
+                                onPressed: () {
+                                  _currentStep.value = 1;
+                                  setState(() {});
+                                  _timer!.cancel();
+                                  _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+                                    if (_currentStep.value >=
+                                        snapshot.data['steps'].length - 1) {
+                                      timer.cancel();
+                                      return;
+                                    }
+                                    setState(() {
+                                      _playAnimation();
+                                      _currentStep.value++;
+                                    });
+                                  });
+                                },
+                                icon: const Icon(
+                                  Icons.play_arrow,
+                                  size: 30,
+                                  color: Colors.blue,
+                                )),
+                            flex: 1,
+                          )
+                        ],
+                      )
+                    ],
                   );
                 }
-              })
-    );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            }));
   }
 
   @override
   String? get restorationId => 'book_details';
 
+  runTick() {}
   @override
   void restoreState(RestorationBucket? oldBucket, bool initialRestore) {
     registerForRestoration(_tabIndex, 'tab_index');
+    registerForRestoration(_currentStep, 'current_step');
     _controller.index = _tabIndex.value;
   }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _controller.dispose();
     _tabIndex.dispose();
+    _timer!.cancel();
+    _currentStep.dispose();
     super.dispose();
+  }
+
+  Future<void> _playAnimation() async {
+    try {
+      _animationController.reset();
+      await _animationController.forward().orCancel;
+    } on TickerCanceled {
+      // the animation got canceled, probably because we were disposed
+    }
   }
 
   void _showModalBottomSheet(BuildContext context) {
@@ -114,7 +209,6 @@ class _BookDetailPageState extends State<BookDetailPage>
     );
   }
 }
-
 
 class _BottomSheetContent extends StatelessWidget {
   @override

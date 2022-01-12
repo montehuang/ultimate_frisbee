@@ -7,75 +7,93 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
 
-class StrategyBoard extends StatefulWidget {
-  StrategyBoard({Key? key, required this.data}) : super(key: key);
-  Map data;
-
-  @override
-  State<StatefulWidget> createState() {
-    return _StrategyBoardState();
-  }
-}
-
-Widget _createItemWidgets(steps, players) {
-  List<Widget> items = [];
-  var keys = [];
-  for (var key in players.keys) {
-    for (var index in players[key]) {
-      var indexKey = key + index.toString();
-      keys.add(indexKey);
+class StrategyBoard extends StatelessWidget {
+  StrategyBoard(
+      {Key? key,
+      required this.playerMap,
+      required this.currentStepMap,
+      required this.lastStepMap,
+      required this.controller}) {
+    key = key;
+    for (var key in playerMap.keys) {
+      for (var index in playerMap[key]) {
+        var indexKey = key + index.toString();
+        indexKeys.add(indexKey);
+      }
+    }
+    for (var indexKey in indexKeys) {
+      var lastX = lastStepMap[indexKey]['xend'] * width / 100 - 15.r;
+      var lastY = lastStepMap[indexKey]['yend'] * height / 100 - 15.r;
+      var currentX = currentStepMap[indexKey]['xend'] * width / 100 - 15.r;
+      var currentY = currentStepMap[indexKey]['yend'] * height / 100 - 15.r;
+      var leftAnimation = Tween(begin: lastX, end: currentX).animate(
+          CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
+      var topAnimation = Tween(begin: lastY, end: currentY).animate(
+          CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
+      leftAnimationMap[indexKey] = leftAnimation;
+      topAnimationMap[indexKey] = topAnimation;
     }
   }
-  for (var key in keys) {
-    var width = 330.r;
-    var height = 554.r;
-    var x = steps[0][key]['xend'] * width / 100 - 15.r;
-    var y = steps[0][key]['yend'] * height / 100 - 15.r;
-    late Widget item;
-    if (key.contains('a')) {
-      item = Positioned(
-          left: x,
-          top: y,
-          child: FieldItemWidget(
-            color: Colors.yellow,
-            showText: key.substring(1),
-          ));
-    } else if (key.contains('b')) {
-      item = Positioned(
-          left: x,
-          top: y,
-          child: FieldItemWidget(
-            color: Colors.grey,
-            showText: key.substring(1),
-          ));
-    } else if (key.contains('x')) {
-      item = Positioned(
-          left: x,
-          top: y,
-          child: FieldItemWidget(
-            color: Colors.red,
-            showText: key.substring(1),
-          ));
-    }
-    items.add(item);
-  }
-  // print(steps[0]);
-  return Stack(clipBehavior: Clip.none, children: items,);
-}
+  var width = 330.r;
+  var height = 600.r;
+  Map playerMap;
+  Map currentStepMap;
+  Map lastStepMap;
+  late Map<String, Animation> leftAnimationMap = {};
+  late Map<String, Animation> topAnimationMap = {};
+  Animation<double> controller;
+  late List indexKeys = [];
+  List animations = [];
+  Widget _createItemWidgets(BuildContext context, Widget? child) {
+    List<Widget> items = [];
 
-class _StrategyBoardState extends State<StrategyBoard>
-    with TickerProviderStateMixin {
+    for (var key in indexKeys) {
+      late Widget item;
+      if (key.contains('a')) {
+        item = Positioned(
+            left: leftAnimationMap[key]?.value,
+            top: topAnimationMap[key]?.value,
+            child: FieldItemWidget(
+              color: Colors.yellow,
+              showText: key.substring(1),
+            ));
+      } else if (key.contains('b')) {
+        item = Positioned(
+            left: leftAnimationMap[key]?.value,
+            top: topAnimationMap[key]?.value,
+            child: FieldItemWidget(
+              color: Colors.grey,
+              showText: key.substring(1),
+            ));
+      } else if (key.contains('x')) {
+        item = Positioned(
+            left: leftAnimationMap[key]?.value,
+            top: topAnimationMap[key]?.value,
+            child: FieldItemWidget(
+              color: Colors.red,
+              showText: key.substring(1),
+            ));
+      }
+      items.add(item);
+    }
+    // print(steps[0]);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: items,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    var width = 330.r;
-    var height = 554.r;
     return Builder(builder: (context) {
       return Container(
           width: width,
           height: height,
           decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-          child:
-              _createItemWidgets(widget.data['steps'], widget.data['players']));
+          child: AnimatedBuilder(
+            builder: _createItemWidgets,
+            animation: controller,
+          ));
     });
   }
 }
