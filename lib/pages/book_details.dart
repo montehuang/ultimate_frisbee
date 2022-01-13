@@ -24,12 +24,11 @@ class BookDetailPage extends StatefulWidget {
 
 class _BookDetailPageState extends State<BookDetailPage>
     with TickerProviderStateMixin, RestorationMixin {
-  _BookDetailPageState();
   late TabController _controller;
   late AnimationController _animationController;
   final RestorableInt _tabIndex = RestorableInt(0);
   final RestorableDouble _currentStep = RestorableDouble(0);
-  Timer? _timer;
+  Timer? _customTimer;
   var _futureGetMessage;
   var _futureGetBook;
   @override
@@ -65,7 +64,6 @@ class _BookDetailPageState extends State<BookDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final tabs = ['战术', '讨论'];
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -123,10 +121,10 @@ class _BookDetailPageState extends State<BookDetailPage>
                               divisions: snapshot.data['steps'].length - 1,
                               label: _currentStep.value.round().toString(),
                               onChanged: (value) {
-                                setState(() {
-                                  _timer!.cancel();
+                                _customTimer?.cancel();
                                   _currentStep.value = value;
                                   _playAnimation();
+                                setState(() {
                                 });
                               },
                             ),
@@ -135,10 +133,9 @@ class _BookDetailPageState extends State<BookDetailPage>
                           Flexible(
                             child: IconButton(
                                 onPressed: () {
-                                  _currentStep.value = 1;
-                                  setState(() {});
-                                  _timer!.cancel();
-                                  _timer = Timer.periodic(const Duration(seconds: 2), (timer) {
+                                  _currentStep.value = 0;
+                                  _customTimer?.cancel();
+                                  _customTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
                                     if (_currentStep.value >=
                                         snapshot.data['steps'].length - 1) {
                                       timer.cancel();
@@ -186,7 +183,7 @@ class _BookDetailPageState extends State<BookDetailPage>
     _animationController.dispose();
     _controller.dispose();
     _tabIndex.dispose();
-    _timer!.cancel();
+    _customTimer?.cancel();
     _currentStep.dispose();
     super.dispose();
   }
