@@ -103,10 +103,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                         child: StrategyBoard(
                           cort: snapshot.data['cort'],
                           playerMap: snapshot.data['players'],
-                          lastStepMap: snapshot.data['steps'][
-                              _currentStep.value.toInt() == 0
-                                  ? 0
-                                  : _currentStep.value.toInt() - 1],
+                          stepIndex: _currentStep.value.toInt(),
                           currentStepMap: snapshot.data['steps']
                               [_currentStep.value.toInt()],
                           controller: _animationController.view,

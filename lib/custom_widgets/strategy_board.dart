@@ -3,6 +3,7 @@
  * @Date: 2022-01-12
  * @Description: 
  */
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
@@ -13,7 +14,7 @@ class StrategyBoard extends StatelessWidget {
       required this.cort,
       required this.playerMap,
       required this.currentStepMap,
-      required this.lastStepMap,
+      required this.stepIndex,
       required this.controller}) {
     key = key;
     for (var key in playerMap.keys) {
@@ -23,25 +24,61 @@ class StrategyBoard extends StatelessWidget {
       }
     }
     for (var indexKey in indexKeys) {
+      var xtart = cort['width'] > cort['height'] ? 'ystart' : 'xstart';
       var xend = cort['width'] > cort['height'] ? 'yend' : 'xend';
+      var ystart = cort['width'] > cort['height'] ? 'xstart' : 'ystart';
       var yend = cort['width'] > cort['height'] ? 'xend' : 'yend';
-      var lastX = lastStepMap[indexKey][xend] * width / 100 - 15.r;
-      var lastY = lastStepMap[indexKey][yend] * height / 100 - 15.r;
-      var currentX = currentStepMap[indexKey][xend] * width / 100 - 15.r;
-      var currentY = currentStepMap[indexKey][yend] * height / 100 - 15.r;
-      var leftAnimation = Tween(begin: lastX, end: currentX).animate(
-          CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
-      var topAnimation = Tween(begin: lastY, end: currentY).animate(
-          CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
-      leftAnimationMap[indexKey] = leftAnimation;
-      topAnimationMap[indexKey] = topAnimation;
+      var xmid = cort['width'] > cort['height'] ? 'ymid' : 'xmid';
+      var ymid = cort['width'] > cort['height'] ? 'xmid' : 'ymid';
+      var midX = currentStepMap[indexKey][xmid] * width / 100 - 15.r;
+      var midY = currentStepMap[indexKey][ymid] * height / 100 - 15.r;
+      var endX = currentStepMap[indexKey][xend] * width / 100 - 15.r;
+      var endY = currentStepMap[indexKey][yend] * height / 100 - 15.r;
+      var startX = 0.0;
+      var startY = 0.0;
+      if (stepIndex == 0) {
+        startX = endX;
+        startY = endY;
+      } else {
+        var bb = currentStepMap[indexKey];
+        startX = currentStepMap[indexKey][xtart] * width / 100 - 15.r;
+        startY = currentStepMap[indexKey][ystart] * height / 100 - 15.r;
+      }
+
+      if (currentStepMap[indexKey]['mode'] == 'line') {
+        var leftAnimation = Tween(begin: startX, end: endX).animate(
+            CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
+        var topAnimation = Tween(begin: startY, end: endY).animate(
+            CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
+        leftAnimationMap[indexKey] = leftAnimation;
+        topAnimationMap[indexKey] = topAnimation;
+      } else if (currentStepMap[indexKey]['mode'] == 'cut' || currentStepMap[indexKey]['mode'] == 'curve') {
+        var leftAnimation = TweenSequence([
+          TweenSequenceItem(
+              tween: Tween(begin: startX, end: midX),
+              weight: (midX - startX).abs()),
+          TweenSequenceItem(
+              tween: Tween(begin: midX, end: endX),
+              weight: (endX - midX).abs()),
+        ]).animate(controller);
+        var topAnimation = TweenSequence([
+          TweenSequenceItem(
+              tween: Tween(begin: startY, end: midY),
+              weight: (midY - startY).abs()),
+          TweenSequenceItem(
+              tween: Tween(begin: midY, end: endY),
+              weight: (endY - midY).abs()),
+        ]).animate(controller);
+        leftAnimationMap[indexKey] = leftAnimation;
+        topAnimationMap[indexKey] = topAnimation;
+      }
     }
   }
   var width = 330.r;
   var height = 600.r;
   Map playerMap;
   Map currentStepMap;
-  Map lastStepMap;
+  int stepIndex;
   Map cort;
   late Map<String, Animation> leftAnimationMap = {};
   late Map<String, Animation> topAnimationMap = {};
@@ -51,9 +88,6 @@ class StrategyBoard extends StatelessWidget {
   Widget _createItemWidgets(BuildContext context, Widget? child) {
     List<Widget> items = [];
     for (var key in indexKeys) {
-      if (key == 'y2') {
-        print('xxxx');
-      }
       late Widget item;
       if (key.contains('a')) {
         item = Positioned(
@@ -90,7 +124,6 @@ class StrategyBoard extends StatelessWidget {
               shape: ItemShape.Triangle,
             ));
       }
-      print(key);
       items.add(item);
     }
     // print(steps[0]);
