@@ -11,9 +11,17 @@ enum ItemShape {
   Triangle,
 }
 
+class FieldItemBorder {
+  FieldItemBorder({this.stroke = 1, this.color = Colors.black54});
+  late double stroke;
+  late Color color;
+}
+
 class FieldItemWidget extends StatefulWidget {
   FieldItemWidget(
       {Key? key,
+      this.textColor = Colors.white,
+      this.border,
       this.shape = ItemShape.Circle,
       this.showText = '',
       this.isSelected = false,
@@ -24,9 +32,11 @@ class FieldItemWidget extends StatefulWidget {
   ItemShape shape;
   String showText;
   bool isSelected;
+  Color textColor;
   double posX;
   double posY;
   Color color;
+  FieldItemBorder? border;
 
   @override
   State<StatefulWidget> createState() {
@@ -46,11 +56,24 @@ class _FieldItemWidgetState extends State<FieldItemWidget> {
           child: SizedBox(
             width: sizeNum,
             height: sizeNum,
-            child: Center(child: Text(widget.showText),) ,
+            child: Center(child: Text(widget.showText, style: TextStyle(color: widget.textColor),),) ,
           ),
           color: widget.color,
         );
         widgets.add(showWidget);
+        if (widget.border != null) {
+          Widget borderWidget = CustomeShapeWidget(
+          shape: widget.shape,
+          style: PaintingStyle.stroke,
+          child: SizedBox(
+            width: sizeNum,
+            height: sizeNum,
+          ),
+          stroke: widget.border?.stroke,
+          color: widget.border?.color,
+        );
+        widgets.add(borderWidget);
+        }
         if (widget.isSelected) {
           Widget selectWidget = CustomeShapeWidget(
             shape: widget.shape,
@@ -60,6 +83,7 @@ class _FieldItemWidgetState extends State<FieldItemWidget> {
               height: sizeNum,
             ),
             color: Colors.lightGreen.shade200,
+            stroke: 4,
           );
           widgets.add(selectWidget);
         }
@@ -88,8 +112,9 @@ class CustomeShapeWidget extends StatelessWidget {
       {color = Colors.white,
       this.child,
       style = PaintingStyle.fill,
+      stroke = 1.0,
       shape = ItemShape.Circle})
-      : painter = DrawCustomeShape(color: color, style: style, shape: shape);
+      : painter = DrawCustomeShape(stroke: stroke, color: color, style: style, shape: shape);
   Widget? child;
   DrawCustomeShape painter;
   @override
@@ -103,13 +128,15 @@ class DrawCustomeShape extends CustomPainter {
   PaintingStyle style;
   late Paint painter;
   ItemShape shape;
+  double stroke;
   DrawCustomeShape(
       {this.color = Colors.white,
+      this.stroke = 1,
       this.style = PaintingStyle.fill,
       this.shape = ItemShape.Circle}) {
     painter = Paint()
       ..color = color
-      ..strokeWidth = 4
+      ..strokeWidth = stroke
       ..style = style;
   }
 

@@ -101,6 +101,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                         padding: EdgeInsets.only(
                             left: 0.r, right: 0.r, top: 0.r, bottom: 0.r),
                         child: StrategyBoard(
+                          cort: snapshot.data['cort'],
                           playerMap: snapshot.data['players'],
                           lastStepMap: snapshot.data['steps'][
                               _currentStep.value.toInt() == 0
