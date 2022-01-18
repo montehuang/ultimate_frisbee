@@ -48,8 +48,9 @@ class _BookDetailPageState extends State<BookDetailPage>
 
   Future _getMessageData() async {
     if (widget.book['team'] != null) {
+      var params = {'entityId': '${widget.book['_id']}', 'sort': 'desc'};
       var data =
-          await ApiClient().get('/api/teams/${widget.book['team']}/messages');
+          await ApiClient().get('/api/teams/${widget.book['team']}/messages', params: params);
       return data;
     }
   }
@@ -73,8 +74,9 @@ class _BookDetailPageState extends State<BookDetailPage>
               children: [
                 Text('讨论'),
                 IconButton(
-                    onPressed: () {
-                      _showModalBottomSheet(context);
+                    onPressed: () async {
+                      var discussList = await _getMessageData();
+                      _showModalBottomSheet(context, discussList);
                     },
                     icon: Icon(Icons.mouse_sharp))
               ],
@@ -120,10 +122,9 @@ class _BookDetailPageState extends State<BookDetailPage>
                               label: _currentStep.value.round().toString(),
                               onChanged: (value) {
                                 _customTimer?.cancel();
-                                  _currentStep.value = value;
-                                  _playAnimation();
-                                setState(() {
-                                });
+                                _currentStep.value = value;
+                                _playAnimation();
+                                setState(() {});
                               },
                             ),
                             flex: 9,
@@ -133,7 +134,8 @@ class _BookDetailPageState extends State<BookDetailPage>
                                 onPressed: () {
                                   _currentStep.value = 0;
                                   _customTimer?.cancel();
-                                  _customTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+                                  _customTimer = Timer.periodic(
+                                      const Duration(seconds: 2), (timer) {
                                     if (_currentStep.value >=
                                         snapshot.data['steps'].length - 1) {
                                       timer.cancel();
@@ -195,17 +197,49 @@ class _BookDetailPageState extends State<BookDetailPage>
     }
   }
 
-  void _showModalBottomSheet(BuildContext context) {
+  void _showModalBottomSheet(BuildContext context, List data) {
     showModalBottomSheet<void>(
       context: context,
       builder: (context) {
-        return _BottomSheetContent();
+        return _BottomSheetContent(
+          discussList: data,
+        );
       },
     );
   }
 }
 
 class _BottomSheetContent extends StatelessWidget {
+  _BottomSheetContent({required this.discussList});
+  List discussList;
+
+  Widget _createListView() {
+    Map discussMap = {};
+    for (var discuss in discussList) {
+      var entityId = discuss['entityId'];
+      var parentId = discuss['parentId'];
+      if (parentId != null) {
+        if (discussMap.containsKey(parentId)) {
+          if (discussMap[parentId]['children'] == null) {
+            discussMap[parentId]['children'] = [discuss];
+          } else {
+            discussMap[parentId].add(discuss);
+          }
+        } else {
+          discussMap[parentId] = {
+            'detail': null,
+            'children': [discuss]
+          };
+        }
+      } else if (!discussMap.containsKey(entityId)) {
+        discussMap[entityId] = {'detail': discuss, 'children': null};
+      }
+    }
+    return ListView(
+      children: [],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -213,25 +247,17 @@ class _BottomSheetContent extends StatelessWidget {
       child: Column(
         children: [
           SizedBox(
-            height: 70.r,
+            height: 40.r,
             child: Center(
               child: Text(
-                "xxxxxxxxxx",
+                "评论",
                 textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
           const Divider(thickness: 1),
-          Expanded(
-            child: ListView.builder(
-              itemCount: 21,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text('yyyyyyy'),
-                );
-              },
-            ),
-          ),
+          Expanded(child: _createListView()),
         ],
       ),
     );

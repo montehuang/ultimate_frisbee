@@ -3,7 +3,6 @@
  * @Date: 2022-01-12
  * @Description: 
  */
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
@@ -40,7 +39,6 @@ class StrategyBoard extends StatelessWidget {
         startX = endX;
         startY = endY;
       } else {
-        var bb = currentStepMap[indexKey];
         startX = currentStepMap[indexKey][xtart] * width / 100 - 15.r;
         startY = currentStepMap[indexKey][ystart] * height / 100 - 15.r;
       }
@@ -80,6 +78,7 @@ class StrategyBoard extends StatelessWidget {
   Map currentStepMap;
   int stepIndex;
   Map cort;
+  Map<String, CatmullRomCurve> catmullRomPathMap = {};
   late Map<String, Animation> leftAnimationMap = {};
   late Map<String, Animation> topAnimationMap = {};
   Animation<double> controller;
@@ -89,26 +88,28 @@ class StrategyBoard extends StatelessWidget {
     List<Widget> items = [];
     for (var key in indexKeys) {
       late Widget item;
+      var leftValue = leftAnimationMap[key]?.value;
+      var topVaule = topAnimationMap[key]?.value;
       if (key.contains('a')) {
         item = Positioned(
-            left: leftAnimationMap[key]?.value,
-            top: topAnimationMap[key]?.value,
+            left: leftValue,
+            top: topVaule,
             child: FieldItemWidget(
               color: Colors.green.shade400,
               showText: key.substring(1),
             ));
       } else if (key.contains('b')) {
         item = Positioned(
-            left: leftAnimationMap[key]?.value,
-            top: topAnimationMap[key]?.value,
+            left: leftValue,
+            top: topVaule,
             child: FieldItemWidget(
               color: Colors.grey,
               showText: key.substring(1),
             ));
       } else if (key.contains('x')) {
         item = Positioned(
-            left: leftAnimationMap[key]?.value,
-            top: topAnimationMap[key]?.value,
+            left: leftValue,
+            top: topVaule,
             child: FieldItemWidget(
               color: Colors.white,
               border: FieldItemBorder(),
@@ -117,8 +118,8 @@ class StrategyBoard extends StatelessWidget {
             ));
       } else if (key.contains('y')) {
         item = Positioned(
-            left: leftAnimationMap[key]?.value,
-            top: topAnimationMap[key]?.value,
+            left: leftValue,
+            top: topVaule,
             child: FieldItemWidget(
               color: Colors.orange,
               shape: ItemShape.Triangle,
@@ -126,7 +127,6 @@ class StrategyBoard extends StatelessWidget {
       }
       items.add(item);
     }
-    // print(steps[0]);
     return Stack(
       clipBehavior: Clip.none,
       children: items,
