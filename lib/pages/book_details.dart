@@ -296,7 +296,11 @@ class _BottomSheetContent extends StatelessWidget {
                 return const Text('获取评论数据失败');
               } else {
                 discussList = snapshot.data;
-                return _createListView();
+                if (discussList.isEmpty) {
+                  return const Text('暂时没有评论哦');
+                } else {
+                  return _createListView();
+                }
               }
             } else {
               return const Center(child: CircularProgressIndicator(),);

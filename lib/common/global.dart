@@ -44,7 +44,7 @@ class Global {
     await dbClient.delete('user');
   }
 
-  static void initUserAndTeam({Map? userData}) async {
+  static Future<void> initUserAndTeam({Map? userData}) async {
     if (userData == null || userData.isEmpty) {
       userData = await _getDatarFromFile('user',  DataType.tMap);
     } else {
@@ -75,7 +75,7 @@ class Global {
     }
   }
   
-  static void initToken({String? newToken}) async {
+  static Future<void> initToken({String? newToken}) async {
     if (newToken == null || newToken.isEmpty) {
       var tokenFromFile = await _getDatarFromFile('token', DataType.tString);
       token = tokenFromFile ?? "";

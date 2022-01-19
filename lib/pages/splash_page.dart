@@ -18,37 +18,44 @@ class SplashScreen extends StatefulWidget {
 
 class SplashState extends State<SplashScreen> with TickerProviderStateMixin {
   final String splashImage = '';
+
+  Future<void> _initData() async {
+    await Global.initUserAndTeam();
+    await Global.initToken();
+  }
+
   @override
   initState() {
     super.initState();
-    Global.initUserAndTeam();
-    Global.initToken();
-    Future.delayed(const Duration(seconds: 2), () {
-      if (Global.token.isEmpty) {
-        // 登录界面
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-                builder: (context) => const LoginPage(
-                      title: "登录",
-                    )),
-            // ignore: unnecessary_null_comparison
-            (route) => route == null);
-      } else {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-                builder: (context) => const HomePage(
-                      title: "极限飞盘",
-                    )),
-            // ignore: unnecessary_null_comparison
-            (route) => route == null);
-      }
-    });
+    _initData().then((value) => {
+          if (Global.token.isEmpty)
+            {
+              // 登录界面
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (context) => const LoginPage(
+                            title: "登录",
+                          )),
+                  // ignore: unnecessary_null_comparison
+                  (route) => route == null)
+            }
+          else
+            {
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (context) => const HomePage(
+                            title: "极限飞盘",
+                          )),
+                  // ignore: unnecessary_null_comparison
+                  (route) => route == null)
+            }
+        });
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('=========='),
+    return Container(
+      color: Colors.white,
     );
   }
 }
