@@ -11,6 +11,7 @@ import 'package:frisbee/custom_widgets/strategy_board.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:frisbee/common/global.dart';
+import 'package:date_format/date_format.dart';
 
 class BookDetailPage extends StatefulWidget {
   BookDetailPage({Key? key, required this.book}) : super(key: key);
@@ -29,12 +30,10 @@ class _BookDetailPageState extends State<BookDetailPage>
   final RestorableInt _tabIndex = RestorableInt(0);
   final RestorableDouble _currentStep = RestorableDouble(0);
   Timer? _customTimer;
-  var _futureGetMessage;
   var _futureGetBook;
   @override
   void initState() {
     super.initState();
-    _futureGetMessage = _getMessageData();
     _futureGetBook = _getBookData();
     _controller = TabController(length: 2, vsync: this, initialIndex: 0);
     _animationController = AnimationController(
@@ -44,15 +43,6 @@ class _BookDetailPageState extends State<BookDetailPage>
         _tabIndex.value = _controller.index;
       });
     });
-  }
-
-  Future _getMessageData() async {
-    if (widget.book['team'] != null) {
-      var params = {'entityId': '${widget.book['_id']}', 'sort': 'desc'};
-      var data =
-          await ApiClient().get('/api/teams/${widget.book['team']}/messages', params: params);
-      return data;
-    }
   }
 
   Future _getBookData() async {
@@ -75,8 +65,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                 Text('讨论'),
                 IconButton(
                     onPressed: () async {
-                      var discussList = await _getMessageData();
-                      _showModalBottomSheet(context, discussList);
+                      _showModalBottomSheet(context, widget.book['team'], widget.book['_id']);
                     },
                     icon: Icon(Icons.mouse_sharp))
               ],
@@ -197,12 +186,13 @@ class _BookDetailPageState extends State<BookDetailPage>
     }
   }
 
-  void _showModalBottomSheet(BuildContext context, List data) {
+  void _showModalBottomSheet(BuildContext context, String teamId, String bookId) {
     showModalBottomSheet<void>(
       context: context,
       builder: (context) {
         return _BottomSheetContent(
-          discussList: data,
+          teamId: teamId,
+          bookId: bookId,
         );
       },
     );
@@ -210,36 +200,79 @@ class _BookDetailPageState extends State<BookDetailPage>
 }
 
 class _BottomSheetContent extends StatelessWidget {
-  _BottomSheetContent({required this.discussList});
-  List discussList;
-
+  _BottomSheetContent({required this.teamId, required this.bookId});
+  late List discussList;
+  String teamId;
+  String bookId;
+  _createAvatar(avatar, radius) {
+    return avatar == null
+              ? SvgPicture.asset(
+                  "assets/player.svg",
+                  width: 20,
+                )
+              : CircleAvatar(
+                  backgroundImage: NetworkImage(
+                    avatar,
+                  ),
+                  radius: radius.toDouble(),
+                );
+  }
   Widget _createListView() {
-    Map discussMap = {};
+    Map<String, dynamic> discussMap = {};
     for (var discuss in discussList) {
-      var entityId = discuss['entityId'];
+      var entityId = discuss['_id'];
       var parentId = discuss['parentId'];
       if (parentId != null) {
         if (discussMap.containsKey(parentId)) {
-          if (discussMap[parentId]['children'] == null) {
+          if (discussMap[parentId]?['children'] == null) {
             discussMap[parentId]['children'] = [discuss];
           } else {
-            discussMap[parentId].add(discuss);
+            discussMap[parentId]['children'].add(discuss);
           }
         } else {
           discussMap[parentId] = {
-            'detail': null,
+            'detail': {},
             'children': [discuss]
           };
         }
       } else if (!discussMap.containsKey(entityId)) {
-        discussMap[entityId] = {'detail': discuss, 'children': null};
+        discussMap[entityId] = {'detail': discuss, 'children': []};
+      } else {
+        discussMap[entityId]['detail'] = discuss;
+      }
+    }
+    List<Widget> tiles = [];
+    for (var discuss in discussList) {
+      var discussId = discuss['_id'];
+      var created = DateTime.parse(discuss['dateCreated']);
+      var createTime = formatDate(created, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+      var tile = ListTile(dense: false, leading: _createAvatar(discuss['userPicture'], 15), title: Text(discuss['userName'] + '    ' + createTime), subtitle: Text(discuss['text']),);
+      tiles.add(tile);
+      if (discussMap.containsKey(discussId)) {
+        var detail = discussMap[discussId]['detail'];
+        if (!discussMap[discussId]['children'].isEmpty) {
+          for (var subDis in discussMap[discussId]['children']) {
+            var subCreated = DateTime.parse(subDis['dateCreated']);
+            var subCreateTime = formatDate(subCreated, [yyyy, '-', mm, '-', dd, ' ', HH, ':', nn, ':', ss]);
+            var subTile = ListTile(contentPadding: const EdgeInsets.only(left: 50), dense: true, leading: _createAvatar(subDis['userPicture'], 10), title: Text(subDis['userName'] + '    ' + subCreateTime), subtitle: Text(subDis['text']),);
+            tiles.add(subTile);
+          }
+        }
       }
     }
     return ListView(
-      children: [],
+      children: tiles,
     );
   }
-
+  
+  Future _getMessageData() async {
+    if (teamId != null) {
+      var params = {'entityId': '$bookId', 'sort': 'desc'};
+      var data = await ApiClient()
+          .get('/api/teams/$teamId/messages', params: params);
+      return data;
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -248,7 +281,7 @@ class _BottomSheetContent extends StatelessWidget {
         children: [
           SizedBox(
             height: 40.r,
-            child: Center(
+            child: const Center(
               child: Text(
                 "评论",
                 textAlign: TextAlign.center,
@@ -257,7 +290,19 @@ class _BottomSheetContent extends StatelessWidget {
             ),
           ),
           const Divider(thickness: 1),
-          Expanded(child: _createListView()),
+          Expanded(child: FutureBuilder(builder: (BuildContext context, AsyncSnapshot snapshot) { 
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.hasError) {
+                return const Text('获取评论数据失败');
+              } else {
+                discussList = snapshot.data;
+                return _createListView();
+              }
+            } else {
+              return const Center(child: CircularProgressIndicator(),);
+            }
+            }, future: _getMessageData(),)
+          ),
         ],
       ),
     );

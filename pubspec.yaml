@@ -51,6 +51,8 @@ dev_dependencies:
   fk_user_agent: ^2.0.1
   event_bus: ^2.0.0
   flutter_screenutil: ^5.0.3
+  intl: ^0.17.0
+  date_format: ^2.0.5
   test: 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
