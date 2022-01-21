@@ -7,6 +7,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
 
+class FieldCustomSeparator extends StatelessWidget {
+  final double height;
+  final Color color;
+  final bool isLine;
+
+  const FieldCustomSeparator(
+      {this.height = 1, this.color = Colors.black, this.isLine = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final boxWidth = constraints.constrainWidth();
+        final dashWidth = isLine ? boxWidth : 10.0;
+        final dashHeight = height;
+        final dashCount = isLine ? 1 : (boxWidth / (2 * dashWidth)).floor();
+        return Flex(
+          children: List.generate(dashCount, (_) {
+            return SizedBox(
+              width: dashWidth,
+              height: dashHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: color),
+              ),
+            );
+          }),
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          direction: Axis.horizontal,
+        );
+      },
+    );
+  }
+}
+
 class StrategyBoard extends StatelessWidget {
   StrategyBoard(
       {Key? key,
@@ -50,7 +84,8 @@ class StrategyBoard extends StatelessWidget {
             CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
         leftAnimationMap[indexKey] = leftAnimation;
         topAnimationMap[indexKey] = topAnimation;
-      } else if (currentStepMap[indexKey]['mode'] == 'cut' || currentStepMap[indexKey]['mode'] == 'curve') {
+      } else if (currentStepMap[indexKey]['mode'] == 'cut' ||
+          currentStepMap[indexKey]['mode'] == 'curve') {
         var leftAnimation = TweenSequence([
           TweenSequenceItem(
               tween: Tween(begin: startX, end: midX),
@@ -133,6 +168,59 @@ class StrategyBoard extends StatelessWidget {
     );
   }
 
+  List<Widget> _createAllFieldItems() {
+    List<Widget> allWidgets = [];
+    var scale = cort['height'] / cort['width'];
+    if (scale == 333 / 900 || scale == 900 / 333) {
+      allWidgets.add(
+        Positioned(
+          child: const FieldCustomSeparator(
+            color: Colors.grey,
+            isLine: true,
+          ),
+          top: height * 1 / 4,
+          width: width,
+        ),
+      );
+      allWidgets.add(
+        Positioned(
+          child: const FieldCustomSeparator(color: Colors.grey),
+          top: height * 1 / 2,
+          width: width,
+        ),
+      );
+      allWidgets.add(
+        Positioned(
+          child: const FieldCustomSeparator(
+            color: Colors.grey,
+            isLine: true,
+          ),
+          top: height * 3 / 4,
+          width: width,
+        ),
+      );
+    } else if (scale == 554 / 333) {
+      allWidgets.add(Positioned(
+        child: const FieldCustomSeparator(color: Colors.grey),
+        top: height * 5 / 6,
+        width: width,
+      ));
+      allWidgets.add(Positioned(
+        child: const FieldCustomSeparator(
+          color: Colors.grey,
+          isLine: true,
+        ),
+        top: height * 2 / 5,
+        width: width,
+      ));
+    }
+    allWidgets.add(AnimatedBuilder(
+      builder: _createItemWidgets,
+      animation: controller,
+    ));
+    return allWidgets;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Builder(builder: (context) {
@@ -140,9 +228,8 @@ class StrategyBoard extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-          child: AnimatedBuilder(
-            builder: _createItemWidgets,
-            animation: controller,
+          child: Stack(
+            children: _createAllFieldItems(),
           ));
     });
   }

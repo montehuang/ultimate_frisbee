@@ -46,7 +46,7 @@ class FieldItemWidget extends StatefulWidget {
 
 class _FieldItemWidgetState extends State<FieldItemWidget> {
   Widget _createShapeWidget() {
-    var sizeNum = 30.r;
+    var sizeNum = 25.r;
     return Container(
       child: Builder(builder: (context) {
         List<Widget> widgets = [];
