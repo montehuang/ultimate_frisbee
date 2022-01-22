@@ -17,7 +17,7 @@ _getControllerPoints(x0, y0, x1, y1, x2, y2, t) {
   //   var p1x=x1-fa*(x2-x0);    // x2-x0 is the width of triangle T
   //   var p1y=y1-fa*(y2-y0);    // y2-y0 is the height of T
   //   var p2x=x1+fb*(x2-x0);
-  //   var p2y=y1+fb*(y2-y0);  
+  //   var p2y=y1+fb*(y2-y0);
   //   return [p1x,p1y,p2x,p2y];
   var d01 = sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2));
   var d12 = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
@@ -65,25 +65,35 @@ class FieldCustomSeparator extends StatelessWidget {
 }
 
 class CurvePainter1 extends CustomPainter {
-  CurvePainter1({required this.begin, required this.controlPos1, required this.controlPos2, required this.end});
+  CurvePainter1(
+      {required this.begin,
+      required this.controlPos1,
+      required this.controlPos2,
+      required this.end});
   Offset begin;
   Offset controlPos1;
   Offset controlPos2;
   Offset end;
+
   ///实际的绘画发生在这里
   @override
   void paint(Canvas canvas, Size size) {
     ///创建画笔
     var paint = Paint();
+
     ///设置画笔的颜色
     paint.color = Colors.blue;
+
     ///创建路径
     var path = Path();
 
     ///A点 设置初始绘制点
     path.moveTo(begin.dx, begin.dy);
+
     /// 绘制到 B点（100，0）
-    path.cubicTo(controlPos1.dx, controlPos1.dy, controlPos2.dx, controlPos2.dy, end.dx, end.dy);
+    path.cubicTo(controlPos1.dx, controlPos1.dy, controlPos2.dx, controlPos2.dy,
+        end.dx, end.dy);
+
     ///绘制 Path
     canvas.drawPath(path, paint);
   }
@@ -140,21 +150,27 @@ class StrategyBoard extends StatelessWidget {
         leftAnimationMap[indexKey] = leftAnimation;
         topAnimationMap[indexKey] = topAnimation;
       } else if (currentStepMap[indexKey]['mode'] == 'cut') {
+        var firstWeight = sqrt(pow(midX - startX, 2) + pow(midY - startY, 2));
+        var secondWeight = sqrt(pow(endX - midX, 2) + pow(endY - midY, 2));
         var leftAnimation = TweenSequence([
           TweenSequenceItem(
-              tween: Tween(begin: startX, end: midX),
-              weight: (midX - startX).abs()),
+            tween: Tween(begin: startX, end: midX),
+            weight: firstWeight,
+          ),
           TweenSequenceItem(
-              tween: Tween(begin: midX, end: endX),
-              weight: (endX - midX).abs()),
+            tween: Tween(begin: midX, end: endX),
+            weight: secondWeight,
+          )
         ]).animate(controller);
         var topAnimation = TweenSequence([
           TweenSequenceItem(
-              tween: Tween(begin: startY, end: midY),
-              weight: (midY - startY).abs()),
+            tween: Tween(begin: startY, end: midY),
+            weight: firstWeight,
+          ),
           TweenSequenceItem(
-              tween: Tween(begin: midY, end: endY),
-              weight: (endY - midY).abs()),
+            tween: Tween(begin: midY, end: endY),
+            weight: secondWeight,
+          )
         ]).animate(controller);
         leftAnimationMap[indexKey] = leftAnimation;
         topAnimationMap[indexKey] = topAnimation;
@@ -162,23 +178,24 @@ class StrategyBoard extends StatelessWidget {
         var beginOffset = Offset(startX, startY);
         var middleOffset = Offset(midX, midY);
         var endOffset = Offset(endX, endY);
-        var firstWeight =  sqrt(pow(midX - startX, 2) + pow(midY - startY, 2));
+        var firstWeight = sqrt(pow(midX - startX, 2) + pow(midY - startY, 2));
         var secondWeight = sqrt(pow(endX - midX, 2) + pow(endY - midY, 2));
         var result =
             _getControllerPoints(startX, startY, midX, midY, endX, endY, 0.5);
         var curveAnimation = TweenSequence([
           TweenSequenceItem(
-              tween: BezierTween(begin: beginOffset, end: middleOffset, middle: result[0]),
-              weight: firstWeight,
+            tween: BezierTween(
+                begin: beginOffset, end: middleOffset, middle: result[0]),
+            weight: firstWeight,
           ),
           TweenSequenceItem(
-              tween: BezierTween(begin: middleOffset, end: endOffset, middle: result[1]),
-              weight: secondWeight,
+            tween: BezierTween(
+                begin: middleOffset, end: endOffset, middle: result[1]),
+            weight: secondWeight,
           )
         ]).animate(controller);
         curveAnimationMap[indexKey] = curveAnimation;
         middleP = Offset(midX, midY);
-
       }
     }
   }
@@ -304,11 +321,18 @@ class StrategyBoard extends StatelessWidget {
       builder: _createItemWidgets,
       animation: controller,
     ));
-    if (middleP != null )
-    {
-      allWidgets.add(Positioned(child: Container(color: Colors.red, width: 5, height: 5,), left: middleP!.dx, top: middleP!.dy,) );
+    if (middleP != null) {
+      allWidgets.add(Positioned(
+        child: Container(
+          color: Colors.red,
+          width: 5,
+          height: 5,
+        ),
+        left: middleP!.dx,
+        top: middleP!.dy,
+      ));
     }
-    
+
     return allWidgets;
   }
 
