@@ -27,16 +27,22 @@ class FieldItemWidget extends StatefulWidget {
       this.isSelected = false,
       this.posX = 0,
       this.posY = 0,
-      this.color = Colors.white})
-      : super(key: key);
-  ItemShape shape;
+      this.color = Colors.white,
+      this.sizeNum})
+      : super(key: key) {
+    sizeNum ??= 25.r;
+    shape ??= ItemShape.Circle;
+    textColor ??= Colors.white;
+  }
+  ItemShape? shape;
   String showText;
   bool isSelected;
-  Color textColor;
+  Color? textColor;
   double posX;
   double posY;
   Color color;
   FieldItemBorder? border;
+  double? sizeNum;
 
   @override
   State<StatefulWidget> createState() {
@@ -46,7 +52,6 @@ class FieldItemWidget extends StatefulWidget {
 
 class _FieldItemWidgetState extends State<FieldItemWidget> {
   Widget _createShapeWidget() {
-    var sizeNum = 25.r;
     return Container(
       child: Builder(builder: (context) {
         List<Widget> widgets = [];
@@ -54,40 +59,44 @@ class _FieldItemWidgetState extends State<FieldItemWidget> {
           shape: widget.shape,
           style: PaintingStyle.fill,
           child: SizedBox(
-            width: sizeNum,
-            height: sizeNum,
-            child: Center(child: Text(widget.showText, style: TextStyle(color: widget.textColor),),) ,
+            width: widget.sizeNum,
+            height: widget.sizeNum,
+            child: Center(
+              child: Text(
+                widget.showText,
+                style: TextStyle(color: widget.textColor),
+              ),
+            ),
           ),
           color: widget.color,
         );
         widgets.add(showWidget);
         if (widget.border != null) {
           Widget borderWidget = CustomeShapeWidget(
-          shape: widget.shape,
-          style: PaintingStyle.stroke,
-          child: SizedBox(
-            width: sizeNum,
-            height: sizeNum,
-          ),
-          stroke: widget.border?.stroke,
-          color: widget.border?.color,
-        );
-        widgets.add(borderWidget);
+            shape: widget.shape,
+            style: PaintingStyle.stroke,
+            child: SizedBox(
+              width: widget.sizeNum,
+              height: widget.sizeNum,
+            ),
+            stroke: widget.border?.stroke,
+            color: widget.border?.color,
+          );
+          widgets.add(borderWidget);
         }
         if (widget.isSelected) {
           Widget selectWidget = CustomeShapeWidget(
             shape: widget.shape,
             style: PaintingStyle.stroke,
             child: SizedBox(
-              width: sizeNum,
-              height: sizeNum,
+              width: widget.sizeNum,
+              height: widget.sizeNum,
             ),
             color: Colors.lightGreen.shade200,
             stroke: 4,
           );
           widgets.add(selectWidget);
         }
-        
 
         return Stack(
           children: widgets,
@@ -114,7 +123,8 @@ class CustomeShapeWidget extends StatelessWidget {
       style = PaintingStyle.fill,
       stroke = 1.0,
       shape = ItemShape.Circle})
-      : painter = DrawCustomeShape(stroke: stroke, color: color, style: style, shape: shape);
+      : painter = DrawCustomeShape(
+            stroke: stroke, color: color, style: style, shape: shape);
   Widget? child;
   DrawCustomeShape painter;
   @override
@@ -146,7 +156,7 @@ class DrawCustomeShape extends CustomPainter {
       var path = Path();
       path.moveTo(size.width / 2, 0);
       path.lineTo(0, size.height);
-      path.lineTo( size.width , size.height);
+      path.lineTo(size.width, size.height);
       path.close();
       canvas.drawPath(path, painter);
     } else if (shape == ItemShape.Circle) {

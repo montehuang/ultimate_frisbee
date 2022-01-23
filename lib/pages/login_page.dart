@@ -18,8 +18,6 @@ class LoginPage extends StatefulWidget {
   }
 }
 
-void setState(Null Function() param0) {}
-
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey _globalKey = GlobalKey<FormState>();
   final _userName = TextEditingController();

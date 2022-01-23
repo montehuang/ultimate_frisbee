@@ -7,104 +7,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frisbee/animations/custom_animation.dart';
+import 'package:frisbee/custom_widgets/custom_painter.dart';
+import 'package:frisbee/custom_widgets/draw_line.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
-
-_getControllerPoints(x0, y0, x1, y1, x2, y2, t) {
-  // var d01=Math.sqrt(Math.pow(x1-x0,2)+Math.pow(y1-y0,2));
-  //   var d12=Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
-  //   var fa=t*d01/(d01+d12);   // scaling factor for triangle Ta
-  //   var fb=t*d12/(d01+d12);   // ditto for Tb, simplifies to fb=t-fa
-  //   var p1x=x1-fa*(x2-x0);    // x2-x0 is the width of triangle T
-  //   var p1y=y1-fa*(y2-y0);    // y2-y0 is the height of T
-  //   var p2x=x1+fb*(x2-x0);
-  //   var p2y=y1+fb*(y2-y0);
-  //   return [p1x,p1y,p2x,p2y];
-  var d01 = sqrt(pow(x1 - x0, 2) + pow(y1 - y0, 2));
-  var d12 = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
-  var fa = t * d01 / (d01 + d12);
-  var fb = t * d12 / (d01 + d12);
-  var p1x = x1 - fa * (x2 - x0);
-  var p1y = y1 - fa * (y2 - y0);
-  var p2x = x1 + fb * (x2 - x0);
-  var p2y = y1 + fb * (y2 - y0);
-  return [Offset(p1x, p1y), Offset(p2x, p2y)];
-}
-
-class FieldCustomSeparator extends StatelessWidget {
-  final double height;
-  final Color color;
-  final bool isLine;
-
-  const FieldCustomSeparator(
-      {this.height = 1, this.color = Colors.black, this.isLine = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final boxWidth = constraints.constrainWidth();
-        final dashWidth = isLine ? boxWidth : 10.0;
-        final dashHeight = height;
-        final dashCount = isLine ? 1 : (boxWidth / (2 * dashWidth)).floor();
-        return Flex(
-          children: List.generate(dashCount, (_) {
-            return SizedBox(
-              width: dashWidth,
-              height: dashHeight,
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: color),
-              ),
-            );
-          }),
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          direction: Axis.horizontal,
-        );
-      },
-    );
-  }
-}
-
-class CurvePainter1 extends CustomPainter {
-  CurvePainter1(
-      {required this.begin,
-      required this.controlPos1,
-      required this.controlPos2,
-      required this.end});
-  Offset begin;
-  Offset controlPos1;
-  Offset controlPos2;
-  Offset end;
-
-  ///实际的绘画发生在这里
-  @override
-  void paint(Canvas canvas, Size size) {
-    ///创建画笔
-    var paint = Paint();
-
-    ///设置画笔的颜色
-    paint.color = Colors.blue;
-
-    ///创建路径
-    var path = Path();
-
-    ///A点 设置初始绘制点
-    path.moveTo(begin.dx, begin.dy);
-
-    /// 绘制到 B点（100，0）
-    path.cubicTo(controlPos1.dx, controlPos1.dy, controlPos2.dx, controlPos2.dy,
-        end.dx, end.dy);
-
-    ///绘制 Path
-    canvas.drawPath(path, paint);
-  }
-
-  ///你的绘画依赖于一个变量并且该变量发生了变化，那么你在这里返回true，
-  ///这样Flutter就知道它必须调用paint方法来重绘你的绘画。否则，在此处返回false表示您不需要重绘
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
-  }
-}
+import 'package:frisbee/utils/calculate.dart';
 
 class StrategyBoard extends StatelessWidget {
   StrategyBoard(
@@ -113,7 +19,8 @@ class StrategyBoard extends StatelessWidget {
       required this.playerMap,
       required this.currentStepMap,
       required this.stepIndex,
-      required this.controller}) {
+      required this.controller,
+      required this.showLines}) {
     key = key;
     for (var key in playerMap.keys) {
       for (var index in playerMap[key]) {
@@ -141,7 +48,9 @@ class StrategyBoard extends StatelessWidget {
         startX = currentStepMap[indexKey][xtart] * width / 100 - 15.r;
         startY = currentStepMap[indexKey][ystart] * height / 100 - 15.r;
       }
-
+      var beginPoint = Offset(startX + 15.r, startY + 15.r);
+      var endPoint = Offset(endX + 15.r, endY + 15.r);
+      pointMap[indexKey] = {"beginPoint": beginPoint, 'endPoint': endPoint};
       if (currentStepMap[indexKey]['mode'] == 'line') {
         var leftAnimation = Tween(begin: startX, end: endX).animate(
             CurvedAnimation(parent: controller, curve: const Interval(0, 1)));
@@ -174,6 +83,8 @@ class StrategyBoard extends StatelessWidget {
         ]).animate(controller);
         leftAnimationMap[indexKey] = leftAnimation;
         topAnimationMap[indexKey] = topAnimation;
+        var middlePoint = Offset(midX + 15.r, midY + 15.r);
+        pointMap[indexKey]?['middlePoint'] = middlePoint;
       } else if (currentStepMap[indexKey]['mode'] == 'curve') {
         var beginOffset = Offset(startX, startY);
         var middleOffset = Offset(midX, midY);
@@ -181,7 +92,7 @@ class StrategyBoard extends StatelessWidget {
         var firstWeight = sqrt(pow(midX - startX, 2) + pow(midY - startY, 2));
         var secondWeight = sqrt(pow(endX - midX, 2) + pow(endY - midY, 2));
         var result =
-            _getControllerPoints(startX, startY, midX, midY, endX, endY, 0.5);
+            getControllerPoints(startX, startY, midX, midY, endX, endY, 0.5);
         var curveAnimation = TweenSequence([
           TweenSequenceItem(
             tween: BezierTween(
@@ -195,7 +106,13 @@ class StrategyBoard extends StatelessWidget {
           )
         ]).animate(controller);
         curveAnimationMap[indexKey] = curveAnimation;
-        middleP = Offset(midX, midY);
+        var middlePoint = Offset(midX + 15.r, midY + 15.r);
+        pointMap[indexKey]?['middlePoint'] = middlePoint;
+        List<Offset> controlPoints = [];
+        for (Offset point in result) {
+          controlPoints.add(Offset(point.dx + 15.r, point.dy + 15.r));
+        }
+        pointMap[indexKey]?['controlPoints'] = controlPoints;
       }
     }
   }
@@ -204,9 +121,11 @@ class StrategyBoard extends StatelessWidget {
   Map playerMap;
   Map currentStepMap;
   late List allPoints = [];
-  Offset? middleP;
+  List<Offset?>? controlPoints;
+  late Map<String, Map> pointMap = {};
   int stepIndex;
   Map cort;
+  bool showLines = false;
   late Map<String, Animation> curveAnimationMap = {};
   late Map<String, Animation> leftAnimationMap = {};
   late Map<String, Animation> topAnimationMap = {};
@@ -215,8 +134,34 @@ class StrategyBoard extends StatelessWidget {
   List animations = [];
   Widget _createItemWidgets(BuildContext context, Widget? child) {
     List<Widget> items = [];
+    if (showLines) {
+      for (var key in indexKeys) {
+        var pointInfo = pointMap[key];
+        if (pointInfo != null) {
+          var controlPoints = pointInfo['controlPoints'] ?? <Offset>[];
+          var beginPoint = pointInfo['beginPoint'];
+          var endPoint = pointInfo['endPoint'];
+          var middlePoint = pointInfo['middlePoint'];
+          var isLine = true;
+          if (!controlPoints.isEmpty) {
+            isLine = false;
+          }
+          Widget line = CustomPaint(
+              size: Size(width, height),
+              painter: CurvePainter(
+                  begin: beginPoint,
+                  controlPos: controlPoints,
+                  middle: middlePoint,
+                  end: endPoint,
+                  isLine: isLine));
+          items.add(line);
+          Widget item = _fieldItemWidget(key, beginPoint.dx - 2.5.r, beginPoint.dy - 2.5.r, '', 5.r);
+          items.add(item);
+        }
+      }
+    }
+
     for (var key in indexKeys) {
-      late Widget item;
       var leftValue = leftAnimationMap[key]?.value;
       var topVaule = topAnimationMap[key]?.value;
       if (curveAnimationMap[key] != null) {
@@ -227,48 +172,43 @@ class StrategyBoard extends StatelessWidget {
         leftValue = leftAnimationMap[key]?.value;
         topVaule = topAnimationMap[key]?.value;
       }
-
-      if (key.contains('a')) {
-        item = Positioned(
-            left: leftValue,
-            top: topVaule,
-            child: FieldItemWidget(
-              color: Colors.green.shade400,
-              showText: key.substring(1),
-            ));
-      } else if (key.contains('b')) {
-        item = Positioned(
-            left: leftValue,
-            top: topVaule,
-            child: FieldItemWidget(
-              color: Colors.grey,
-              showText: key.substring(1),
-            ));
-      } else if (key.contains('x')) {
-        item = Positioned(
-            left: leftValue,
-            top: topVaule,
-            child: FieldItemWidget(
-              color: Colors.white,
-              border: FieldItemBorder(),
-              showText: key.substring(1),
-              textColor: Colors.grey,
-            ));
-      } else if (key.contains('y')) {
-        item = Positioned(
-            left: leftValue,
-            top: topVaule,
-            child: FieldItemWidget(
-              color: Colors.orange,
-              shape: ItemShape.Triangle,
-            ));
-      }
+      Widget item = _fieldItemWidget(key, leftValue, topVaule, key.substring(1), 25.r);
       items.add(item);
     }
     return Stack(
       clipBehavior: Clip.none,
       children: items,
     );
+  }
+  Widget _createOneItemWidget(leftValue, topVaule, showText, sizeNum, color, shape, bool isShowBorder, textColor) {
+    Widget widget = Positioned(
+          left: leftValue,
+          top: topVaule,
+          child: FieldItemWidget(
+            color: color,
+            border: isShowBorder ? FieldItemBorder():null,
+            showText: showText ?? '',
+            sizeNum: sizeNum,
+            shape: shape,
+            textColor: textColor,
+          ));
+          return widget;
+  }
+
+  Widget _fieldItemWidget(key, leftValue, topVaule, showText, sizeNum) {
+    Widget item;
+    if (key.contains('a')) {
+      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum, Colors.green.shade400, null, false, null);
+    } else if (key.contains('b')) {
+      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum, Colors.grey, null, false, null);
+    } else if (key.contains('x')) {
+      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum, Colors.white, null, true, Colors.grey);
+    } else if (key.contains('y')) {
+      item = _createOneItemWidget(leftValue, topVaule, '', sizeNum, Colors.orange, ItemShape.Triangle, false, null);
+    } else {
+      item = Container();
+    }
+    return item;
   }
 
   List<Widget> _createAllFieldItems() {
@@ -321,17 +261,6 @@ class StrategyBoard extends StatelessWidget {
       builder: _createItemWidgets,
       animation: controller,
     ));
-    if (middleP != null) {
-      allWidgets.add(Positioned(
-        child: Container(
-          color: Colors.red,
-          width: 5,
-          height: 5,
-        ),
-        left: middleP!.dx,
-        top: middleP!.dy,
-      ));
-    }
 
     return allWidgets;
   }
