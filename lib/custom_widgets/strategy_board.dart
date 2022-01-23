@@ -15,6 +15,7 @@ import 'package:frisbee/utils/calculate.dart';
 class StrategyBoard extends StatelessWidget {
   StrategyBoard(
       {Key? key,
+      this.filedItemSizeNum,
       required this.cort,
       required this.playerMap,
       required this.currentStepMap,
@@ -22,6 +23,7 @@ class StrategyBoard extends StatelessWidget {
       required this.controller,
       required this.showLines}) {
     key = key;
+    filedItemSizeNum ??= 26.r;
     for (var key in playerMap.keys) {
       for (var index in playerMap[key]) {
         var indexKey = key + index.toString();
@@ -35,21 +37,21 @@ class StrategyBoard extends StatelessWidget {
       var yend = cort['width'] > cort['height'] ? 'xend' : 'yend';
       var xmid = cort['width'] > cort['height'] ? 'ymid' : 'xmid';
       var ymid = cort['width'] > cort['height'] ? 'xmid' : 'ymid';
-      var midX = currentStepMap[indexKey][xmid] * width / 100 - 15.r;
-      var midY = currentStepMap[indexKey][ymid] * height / 100 - 15.r;
-      var endX = currentStepMap[indexKey][xend] * width / 100 - 15.r;
-      var endY = currentStepMap[indexKey][yend] * height / 100 - 15.r;
+      var midX = currentStepMap[indexKey][xmid] * width / 100 - filedItemSizeNum! / 2;
+      var midY = currentStepMap[indexKey][ymid] * height / 100 - filedItemSizeNum! / 2;
+      var endX = currentStepMap[indexKey][xend] * width / 100 - filedItemSizeNum! / 2;
+      var endY = currentStepMap[indexKey][yend] * height / 100 - filedItemSizeNum! / 2;
       var startX = 0.0;
       var startY = 0.0;
       if (stepIndex == 0) {
         startX = endX;
         startY = endY;
       } else {
-        startX = currentStepMap[indexKey][xtart] * width / 100 - 15.r;
-        startY = currentStepMap[indexKey][ystart] * height / 100 - 15.r;
+        startX = currentStepMap[indexKey][xtart] * width / 100 - filedItemSizeNum! / 2;
+        startY = currentStepMap[indexKey][ystart] * height / 100 - filedItemSizeNum! / 2;
       }
-      var beginPoint = Offset(startX + 15.r, startY + 15.r);
-      var endPoint = Offset(endX + 15.r, endY + 15.r);
+      var beginPoint = Offset(startX + filedItemSizeNum! / 2, startY + filedItemSizeNum! / 2);
+      var endPoint = Offset(endX + filedItemSizeNum! / 2, endY + filedItemSizeNum! / 2);
       pointMap[indexKey] = {"beginPoint": beginPoint, 'endPoint': endPoint};
       if (currentStepMap[indexKey]['mode'] == 'line') {
         var leftAnimation = Tween(begin: startX, end: endX).animate(
@@ -83,7 +85,7 @@ class StrategyBoard extends StatelessWidget {
         ]).animate(controller);
         leftAnimationMap[indexKey] = leftAnimation;
         topAnimationMap[indexKey] = topAnimation;
-        var middlePoint = Offset(midX + 15.r, midY + 15.r);
+        var middlePoint = Offset(midX + filedItemSizeNum! / 2, midY + filedItemSizeNum! / 2);
         pointMap[indexKey]?['middlePoint'] = middlePoint;
       } else if (currentStepMap[indexKey]['mode'] == 'curve') {
         var beginOffset = Offset(startX, startY);
@@ -106,11 +108,11 @@ class StrategyBoard extends StatelessWidget {
           )
         ]).animate(controller);
         curveAnimationMap[indexKey] = curveAnimation;
-        var middlePoint = Offset(midX + 15.r, midY + 15.r);
+        var middlePoint = Offset(midX + filedItemSizeNum! / 2, midY + filedItemSizeNum! / 2);
         pointMap[indexKey]?['middlePoint'] = middlePoint;
         List<Offset> controlPoints = [];
         for (Offset point in result) {
-          controlPoints.add(Offset(point.dx + 15.r, point.dy + 15.r));
+          controlPoints.add(Offset(point.dx + filedItemSizeNum! / 2, point.dy + filedItemSizeNum! / 2));
         }
         pointMap[indexKey]?['controlPoints'] = controlPoints;
       }
@@ -119,6 +121,7 @@ class StrategyBoard extends StatelessWidget {
   var width = 330.r;
   var height = 600.r;
   Map playerMap;
+  double? filedItemSizeNum;
   Map currentStepMap;
   late List allPoints = [];
   List<Offset?>? controlPoints;
@@ -155,7 +158,7 @@ class StrategyBoard extends StatelessWidget {
                   end: endPoint,
                   isLine: isLine));
           items.add(line);
-          Widget item = _fieldItemWidget(key, beginPoint.dx - 2.5.r, beginPoint.dy - 2.5.r, '', 5.r);
+          Widget item = _fieldItemWidget(key, beginPoint.dx - 1.5.r, beginPoint.dy - 1.5.r, '', 3.r);
           items.add(item);
         }
       }
@@ -172,7 +175,7 @@ class StrategyBoard extends StatelessWidget {
         leftValue = leftAnimationMap[key]?.value;
         topVaule = topAnimationMap[key]?.value;
       }
-      Widget item = _fieldItemWidget(key, leftValue, topVaule, key.substring(1), 25.r);
+      Widget item = _fieldItemWidget(key, leftValue, topVaule, key.substring(1), filedItemSizeNum);
       items.add(item);
     }
     return Stack(
