@@ -43,11 +43,9 @@ class _BookDetailPageState extends State<BookDetailPage>
         showLines = false;
       } else if (status == AnimationStatus.completed) {
         showLines = true;
-        setState(() {
-        });
+        setState(() {});
       }
     });
-    
   }
 
   Future _getBookData() async {
@@ -57,7 +55,7 @@ class _BookDetailPageState extends State<BookDetailPage>
       return data;
     }
   }
-
+  late Map bookData;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,13 +65,19 @@ class _BookDetailPageState extends State<BookDetailPage>
           actions: [
             Row(
               children: [
-                Text('讨论'),
+                IconButton(
+                    onPressed: () {
+                      if (bookData['steps'].length - 1 >= _currentStep.value.toInt()) {
+                        _showStepDescriptionBottomSheet(context, bookData['steps'][_currentStep.value.toInt()]['descr']??"");
+                      }
+                      
+                    }, icon: const Icon(Icons.description)),
                 IconButton(
                     onPressed: () async {
-                      _showModalBottomSheet(
+                      _showDiscussBottomSheet(
                           context, widget.book['team'], widget.book['_id']);
                     },
-                    icon: Icon(Icons.mouse_sharp))
+                    icon: const Icon(Icons.speaker_notes))
               ],
             )
           ],
@@ -90,6 +94,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                     child: Text('获取战术出错'),
                   );
                 } else {
+                  bookData = snapshot.data;
                   return Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -119,9 +124,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                                 _customTimer?.cancel();
                                 _currentStep.value = value;
                                 _playAnimation();
-                                setState(() {
-                                  
-                                });
+                                setState(() {});
                               },
                             ),
                             flex: 9,
@@ -140,9 +143,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                                     }
                                     _playAnimation();
                                     _currentStep.value++;
-                                    setState(() {
-                                      
-                                    });
+                                    setState(() {});
                                   });
                                 },
                                 icon: const Icon(
@@ -192,7 +193,7 @@ class _BookDetailPageState extends State<BookDetailPage>
     }
   }
 
-  void _showModalBottomSheet(
+  void _showDiscussBottomSheet(
       BuildContext context, String teamId, String bookId) {
     showModalBottomSheet<void>(
       context: context,
@@ -203,6 +204,32 @@ class _BookDetailPageState extends State<BookDetailPage>
         );
       },
     );
+  }
+
+  void _showStepDescriptionBottomSheet(
+      BuildContext context, String description) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return SizedBox(
+              height: 300.r,
+              child: Column(children: [
+                SizedBox(
+                  height: 40.r,
+                  child:  Center(
+                    child: Text(
+                      "第${_currentStep.value.toInt()}步说明",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const Divider(thickness: 1),
+                Expanded(
+                    child: Padding(padding: EdgeInsets.only(left: 20.r, right: 20.r,  bottom: 20.r), child:SingleChildScrollView(scrollDirection: Axis.vertical, child: Text(description, style: TextStyle(fontSize: 20),),)),
+                )
+              ]));
+        });
   }
 }
 
