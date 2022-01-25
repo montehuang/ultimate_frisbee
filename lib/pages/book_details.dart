@@ -55,6 +55,7 @@ class _BookDetailPageState extends State<BookDetailPage>
       return data;
     }
   }
+
   late Map bookData;
   @override
   Widget build(BuildContext context) {
@@ -67,11 +68,16 @@ class _BookDetailPageState extends State<BookDetailPage>
               children: [
                 IconButton(
                     onPressed: () {
-                      if (bookData['steps'].length - 1 >= _currentStep.value.toInt()) {
-                        _showStepDescriptionBottomSheet(context, bookData['steps'][_currentStep.value.toInt()]['descr']??"");
+                      if (bookData['steps'].length - 1 >=
+                          _currentStep.value.toInt()) {
+                        _showStepDescriptionBottomSheet(
+                            context,
+                            bookData['steps'][_currentStep.value.toInt()]
+                                    ['descr'] ??
+                                "");
                       }
-                      
-                    }, icon: const Icon(Icons.description)),
+                    },
+                    icon: const Icon(Icons.description)),
                 IconButton(
                     onPressed: () async {
                       _showDiscussBottomSheet(
@@ -81,9 +87,11 @@ class _BookDetailPageState extends State<BookDetailPage>
               ],
             )
           ],
-          title: Text(
-            widget.book['name'],
-          ),
+          title: Tooltip(
+              message: widget.book['name'],
+              child: Text(
+                widget.book['name'],
+              )),
         ),
         body: FutureBuilder(
             future: _futureGetBook,
@@ -216,7 +224,7 @@ class _BookDetailPageState extends State<BookDetailPage>
               child: Column(children: [
                 SizedBox(
                   height: 40.r,
-                  child:  Center(
+                  child: Center(
                     child: Text(
                       "第${_currentStep.value.toInt()}步说明",
                       textAlign: TextAlign.center,
@@ -226,7 +234,16 @@ class _BookDetailPageState extends State<BookDetailPage>
                 ),
                 const Divider(thickness: 1),
                 Expanded(
-                    child: Padding(padding: EdgeInsets.only(left: 20.r, right: 20.r,  bottom: 20.r), child:SingleChildScrollView(scrollDirection: Axis.vertical, child: Text(description, style: TextStyle(fontSize: 20),),)),
+                  child: Padding(
+                      padding: EdgeInsets.only(
+                          left: 20.r, right: 20.r, bottom: 20.r),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: Text(
+                          description,
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )),
                 )
               ]));
         });
