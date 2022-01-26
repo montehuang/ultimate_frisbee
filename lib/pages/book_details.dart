@@ -104,7 +104,7 @@ class _BookDetailPageState extends State<BookDetailPage>
                 } else {
                   bookData = snapshot.data;
                   return Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Center(
                           child: Padding(
@@ -119,50 +119,55 @@ class _BookDetailPageState extends State<BookDetailPage>
                             controller: _animationController.view,
                             showLines: showLines),
                       )),
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Slider(
-                              value: _currentStep.value,
-                              min: 0,
-                              max: snapshot.data['steps'].length.toDouble() - 1,
-                              divisions: snapshot.data['steps'].length - 1,
-                              label: _currentStep.value.round().toString(),
-                              onChanged: (value) {
-                                _customTimer?.cancel();
-                                _currentStep.value = value;
-                                _playAnimation();
-                                setState(() {});
-                              },
-                            ),
-                            flex: 9,
-                          ),
-                          Flexible(
-                            child: IconButton(
-                                onPressed: () {
-                                  _currentStep.value = 0;
-                                  _customTimer?.cancel();
-                                  _customTimer = Timer.periodic(
-                                      const Duration(seconds: 2), (timer) {
-                                    if (_currentStep.value >=
-                                        snapshot.data['steps'].length - 1) {
-                                      timer.cancel();
-                                      return;
-                                    }
-                                    _playAnimation();
-                                    _currentStep.value++;
-                                    setState(() {});
-                                  });
-                                },
-                                icon: const Icon(
-                                  Icons.play_arrow,
-                                  size: 30,
-                                  color: Colors.blue,
+                      IconButton(
+                          onPressed: () {
+                            _currentStep.value = 0;
+                            _customTimer?.cancel();
+                            _customTimer = Timer.periodic(
+                                const Duration(seconds: 2), (timer) {
+                              if (_currentStep.value >=
+                                  snapshot.data['steps'].length - 1) {
+                                timer.cancel();
+                                return;
+                              }
+                              _playAnimation();
+                              _currentStep.value++;
+                              setState(() {});
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.play_arrow,
+                            size: 50,
+                            color: Colors.blue,
+                          )),
+                      Stack(
+                              children: [
+                                Positioned(
+                                    // left: 10.r,
+                                    child: SliderTheme(
+                                  data: SliderThemeData(
+                                      thumbShape:
+                                          SliderComponentShape.noOverlay),
+                                  child: Slider(
+                                    value: _currentStep.value,
+                                    min: 0,
+                                    max: snapshot.data['steps'].length
+                                            .toDouble() -
+                                        1,
+                                    divisions:
+                                        snapshot.data['steps'].length - 1,
+                                    label:
+                                        _currentStep.value.round().toString(),
+                                    onChanged: (value) {
+                                      _customTimer?.cancel();
+                                      _currentStep.value = value;
+                                      _playAnimation();
+                                      setState(() {});
+                                    },
+                                  ),
                                 )),
-                            flex: 1,
-                          )
-                        ],
-                      )
+                              ],
+                            )
                     ],
                   );
                 }
