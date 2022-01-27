@@ -6,12 +6,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frisbee/custom_widgets/field_item_widget.dart';
 import 'package:frisbee/custom_widgets/strategy_board.dart';
-import 'package:frisbee/pages/login_page.dart';
 import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:frisbee/common/global.dart';
 import 'package:date_format/date_format.dart';
 
 class BookDetailPage extends StatefulWidget {
@@ -141,33 +138,35 @@ class _BookDetailPageState extends State<BookDetailPage>
                             color: Colors.blue,
                           )),
                       Stack(
-                              children: [
-                                Positioned(
-                                    // left: 10.r,
-                                    child: SliderTheme(
-                                  data: SliderThemeData(
-                                      thumbShape:
-                                          SliderComponentShape.noOverlay),
-                                  child: Slider(
-                                    value: _currentStep.value,
-                                    min: 0,
-                                    max: snapshot.data['steps'].length
-                                            .toDouble() -
-                                        1,
-                                    divisions:
-                                        snapshot.data['steps'].length - 1,
-                                    label:
-                                        _currentStep.value.round().toString(),
-                                    onChanged: (value) {
-                                      _customTimer?.cancel();
-                                      _currentStep.value = value;
-                                      _playAnimation();
-                                      setState(() {});
-                                    },
-                                  ),
-                                )),
-                              ],
-                            )
+                        children: [
+                          Builder(builder: (BuildContext context) {
+                            if (snapshot.data['steps'].length > 1) {
+                              return Positioned(
+                                  child: SliderTheme(
+                                data: SliderThemeData(
+                                    thumbShape: SliderComponentShape.noOverlay),
+                                child: Slider(
+                                  value: _currentStep.value,
+                                  min: 0,
+                                  max:
+                                      snapshot.data['steps'].length.toDouble() -
+                                          1,
+                                  divisions: snapshot.data['steps'].length - 1,
+                                  label: _currentStep.value.round().toString(),
+                                  onChanged: (value) {
+                                    _customTimer?.cancel();
+                                    _currentStep.value = value;
+                                    _playAnimation();
+                                    setState(() {});
+                                  },
+                                ),
+                              ));
+                            } else {
+                              return const SizedBox();
+                            }
+                          }),
+                        ],
+                      )
                     ],
                   );
                 }

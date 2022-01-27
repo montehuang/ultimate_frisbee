@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 class Global {
   static User? currentUser = User();
   static List<Team?> teams = [];
+  static Team? currentTeam;
   static DbClient dbClient = const DbClient();
   static String token = '';
   static String userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36';

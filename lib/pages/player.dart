@@ -30,7 +30,7 @@ class _PlayerPageState extends State<PlayerPage> {
   }
   _getTeamData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var data = await ApiClient().get('/api/teams/$teamId');
       return data;
     }

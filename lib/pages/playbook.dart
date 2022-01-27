@@ -38,7 +38,7 @@ class _BookPageState extends State<BookPage>
 
   Future _getTeamData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var data = await ApiClient().get('/api/teams/$teamId');
       return data;
     }
@@ -167,7 +167,7 @@ class _BookPageState extends State<BookPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        book['name'],
+                        book['name']??"",
                         style: const TextStyle(fontSize: 20),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -202,7 +202,7 @@ class _BookPageState extends State<BookPage>
                         if (book['steps']?.isEmpty ?? false) {
                           return const Text('');
                         } else {
-                          var desc = book['steps'][0]['descr'];
+                          var desc = book['steps'][0]['descr']??"";
                           return Container(
                             width: 300,
                             child: Text(

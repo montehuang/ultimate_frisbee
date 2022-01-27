@@ -28,7 +28,7 @@ class _SubHomePageState extends State<SubHomePage>
     with TickerProviderStateMixin {
   Future _getTeamData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var data = await ApiClient().get('/api/teams/$teamId');
       data['type'] = 'team';
       return data;
