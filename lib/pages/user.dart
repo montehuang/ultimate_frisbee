@@ -31,7 +31,7 @@ class _UserDrawerState extends State<UserDrawer> {
 
   _getUserStats() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var userId = Global.currentUser!.id;
       var data = await ApiClient().get(
         '/api/teams/$teamId/users/$userId/statsgames');

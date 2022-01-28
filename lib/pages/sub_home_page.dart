@@ -25,7 +25,7 @@ class SubHomePage extends StatefulWidget {
 }
 
 class _SubHomePageState extends State<SubHomePage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   Future _getTeamData() async {
     if (Global.teams.isNotEmpty) {
       var teamId = Global.currentTeam!.id;
@@ -37,7 +37,7 @@ class _SubHomePageState extends State<SubHomePage>
 
   Future _getMessageData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var params = {'limit': '5', 'sort': 'desc'};
       var data =
           await ApiClient().get('/api/teams/$teamId/messages', params: params);
@@ -47,7 +47,7 @@ class _SubHomePageState extends State<SubHomePage>
 
   Future _getUserStats() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var userId = Global.currentUser!.id;
       var data =
           await ApiClient().get('/api/teams/$teamId/users/$userId/statsgames');
@@ -63,6 +63,7 @@ class _SubHomePageState extends State<SubHomePage>
   var _getAllData;
   late AnimationController _animationController;
   late AnimationController _backAnimationController;
+  late Future _delayController;
   @override
   void initState() {
     _getAllData = _getAllDatas();
@@ -159,7 +160,7 @@ class _SubHomePageState extends State<SubHomePage>
       return Center(child: const Text('获取数据错误'));
     }
     _animationController.forward();
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    _delayController = Future.delayed(const Duration(milliseconds: 1000), () {
       _backAnimationController.forward();
     });
     var total = stat['total'];
@@ -278,6 +279,7 @@ class _SubHomePageState extends State<SubHomePage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Center(
         child: FutureBuilder<dynamic>(
       future: _getAllData,
@@ -321,6 +323,9 @@ class _SubHomePageState extends State<SubHomePage>
   void dispose() {
     _animationController.dispose();
     _backAnimationController.dispose();
-    super.dispose();
+  super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -91,12 +91,18 @@ class HomePageState extends State<HomePage>
 
   _showPicker(BuildContext context) {
     List names = [];
-    for (var team in Global.teams) {
+    var index = 0;
+    for (var teamWithKey in Global.teams.asMap().entries) {
+      var team = teamWithKey.value;
       names.add(team?.name);
+      if (team?.name == showTeamName) {
+        index = teamWithKey.key;
+      }
     }
     Picker(
         adapter: PickerDataAdapter<String>(pickerdata: names),
         changeToFirst: false,
+        selecteds: [index],
         hideHeader: true,
         height: 100,
         title: const Text("选择队伍"),
@@ -124,4 +130,5 @@ class HomePageState extends State<HomePage>
     _tabController.dispose();
     super.dispose();
   }
+
 }

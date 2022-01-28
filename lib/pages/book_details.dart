@@ -22,7 +22,7 @@ class BookDetailPage extends StatefulWidget {
 }
 
 class _BookDetailPageState extends State<BookDetailPage>
-    with TickerProviderStateMixin, RestorationMixin {
+    with TickerProviderStateMixin, RestorationMixin, AutomaticKeepAliveClientMixin {
   late AnimationController _animationController;
   final RestorableInt _tabIndex = RestorableInt(0);
   final RestorableDouble _currentStep = RestorableDouble(0);
@@ -56,6 +56,7 @@ class _BookDetailPageState extends State<BookDetailPage>
   late Map bookData;
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -85,9 +86,9 @@ class _BookDetailPageState extends State<BookDetailPage>
             )
           ],
           title: Tooltip(
-              message: widget.book['name'],
+              message: widget.book['name']??"",
               child: Text(
-                widget.book['name'],
+                widget.book['name']??'',
               )),
         ),
         body: FutureBuilder(
@@ -252,6 +253,9 @@ class _BookDetailPageState extends State<BookDetailPage>
               ]));
         });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class _BottomSheetContent extends StatelessWidget {

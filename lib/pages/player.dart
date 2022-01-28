@@ -21,7 +21,7 @@ class PlayerPage extends StatefulWidget {
   }
 }
 
-class _PlayerPageState extends State<PlayerPage> {
+class _PlayerPageState extends State<PlayerPage> with AutomaticKeepAliveClientMixin {
   var _featureGetPlayers;
   @override
   void initState() {
@@ -38,7 +38,7 @@ class _PlayerPageState extends State<PlayerPage> {
 
   _getUserStats(user) async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var userId = user['id'];
       var data =
           await ApiClient().get('/api/teams/$teamId/users/$userId/statsgames');
@@ -143,6 +143,7 @@ class _PlayerPageState extends State<PlayerPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Center(
         child: FutureBuilder<dynamic>(
       future: _featureGetPlayers,
@@ -215,4 +216,7 @@ class _PlayerPageState extends State<PlayerPage> {
       },
     ));
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

@@ -4,6 +4,7 @@
  * @Description: 
  */
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:frisbee/common/global.dart';
 import 'package:frisbee/pages/book_details.dart';
 import 'package:frisbee/utils/request_util.dart';
@@ -21,7 +22,7 @@ class BookPage extends StatefulWidget {
 }
 
 class _BookPageState extends State<BookPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   bool _hasLoadData = false;
   var _getAllData;
   late final List<Map<String, dynamic>> _showTagInfos = [];
@@ -35,7 +36,6 @@ class _BookPageState extends State<BookPage>
 
     super.initState();
   }
-
   Future _getTeamData() async {
     if (Global.teams.isNotEmpty) {
       var teamId = Global.currentTeam!.id;
@@ -46,7 +46,7 @@ class _BookPageState extends State<BookPage>
 
   Future _getGamesData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.teams[0]!.id;
+      var teamId = Global.currentTeam!.id;
       var data = await ApiClient().get('/api/teams/$teamId/games');
       return data;
     }
@@ -122,7 +122,7 @@ class _BookPageState extends State<BookPage>
           }
         }
       } else {
-        for (var tagInfo in one['tags']) {
+        for (var tagInfo in one['tags']??[]) {
           _tagMap[tagInfo['id']] = tagInfo['name'];
           _showTagInfos.add(tagInfo);
         }
@@ -273,6 +273,7 @@ class _BookPageState extends State<BookPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return FutureBuilder<dynamic>(
         future: _getAllData,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -313,4 +314,7 @@ class _BookPageState extends State<BookPage>
           }
         });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

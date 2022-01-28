@@ -39,13 +39,6 @@ class SplashState extends State<SplashScreen> with TickerProviderStateMixin {
             {
               _autoLogin().then((value) {
                 if (value['success']) {
-                  if (value['user']?['teams']?.length > 0 ) {
-                    value['user']['teams'].sort((a, b){
-                      DateTime aViewed = DateTime.parse(a['viewed']);
-                      DateTime bViewd = DateTime.parse(b['viewed']);
-                      return bViewd.compareTo(aViewed);
-                    });
-                  }
                   Global.initUserAndTeam(userData: value['user']).then((v) {
                     Global.currentTeam = Global.teams[0];
                       _navigateToHomePage();
