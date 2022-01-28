@@ -10,10 +10,9 @@ import 'package:frisbee/utils/request_util.dart';
 import 'package:frisbee/pages/user_statistics.dart';
 
 class PlayerPage extends StatefulWidget {
-  const PlayerPage({Key? key, required this.icon, required this.header})
+  const PlayerPage({Key? key, required this.teamId})
       : super(key: key);
-  final IconData icon;
-  final String header;
+  final String teamId;
 
   @override
   State<StatefulWidget> createState() {
@@ -21,16 +20,16 @@ class PlayerPage extends StatefulWidget {
   }
 }
 
-class _PlayerPageState extends State<PlayerPage> with AutomaticKeepAliveClientMixin {
+class _PlayerPageState extends State<PlayerPage> {
   var _featureGetPlayers;
   @override
   void initState() {
-    _featureGetPlayers = _getTeamData();
+    // _featureGetPlayers = _getTeamData();
     super.initState();
   }
   _getTeamData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var data = await ApiClient().get('/api/teams/$teamId');
       return data;
     }
@@ -38,7 +37,7 @@ class _PlayerPageState extends State<PlayerPage> with AutomaticKeepAliveClientMi
 
   _getUserStats(user) async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var userId = user['id'];
       var data =
           await ApiClient().get('/api/teams/$teamId/users/$userId/statsgames');
@@ -143,10 +142,9 @@ class _PlayerPageState extends State<PlayerPage> with AutomaticKeepAliveClientMi
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Center(
         child: FutureBuilder<dynamic>(
-      future: _featureGetPlayers,
+      future: _getTeamData(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         // 请求已结束
         if (snapshot.connectionState == ConnectionState.done) {
@@ -217,6 +215,4 @@ class _PlayerPageState extends State<PlayerPage> with AutomaticKeepAliveClientMi
     ));
   }
 
-  @override
-  bool get wantKeepAlive => true;
 }

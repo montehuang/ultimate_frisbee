@@ -3,6 +3,7 @@
  * @Date: 2021-12-18
  * @Description: 
  */
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:frisbee/common/events.dart';
@@ -13,10 +14,9 @@ import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 
 class SubHomePage extends StatefulWidget {
-  const SubHomePage({Key? key, required this.icon, required this.header})
+  const SubHomePage({Key? key, required this.teamId})
       : super(key: key);
-  final IconData icon;
-  final String header;
+  final String teamId;
 
   @override
   State<StatefulWidget> createState() {
@@ -28,7 +28,7 @@ class _SubHomePageState extends State<SubHomePage>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   Future _getTeamData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var data = await ApiClient().get('/api/teams/$teamId');
       data['type'] = 'team';
       return data;
@@ -37,7 +37,7 @@ class _SubHomePageState extends State<SubHomePage>
 
   Future _getMessageData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var params = {'limit': '5', 'sort': 'desc'};
       var data =
           await ApiClient().get('/api/teams/$teamId/messages', params: params);
@@ -47,7 +47,7 @@ class _SubHomePageState extends State<SubHomePage>
 
   Future _getUserStats() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var userId = Global.currentUser!.id;
       var data =
           await ApiClient().get('/api/teams/$teamId/users/$userId/statsgames');
@@ -60,13 +60,11 @@ class _SubHomePageState extends State<SubHomePage>
     return Future.wait([_getTeamData(), _getUserStats(), _getMessageData()]);
   }
 
-  var _getAllData;
   late AnimationController _animationController;
   late AnimationController _backAnimationController;
-  late Future _delayController;
+  Timer? _delayTimer;
   @override
   void initState() {
-    _getAllData = _getAllDatas();
     _animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
     _backAnimationController = AnimationController(
@@ -160,7 +158,7 @@ class _SubHomePageState extends State<SubHomePage>
       return Center(child: const Text('获取数据错误'));
     }
     _animationController.forward();
-    _delayController = Future.delayed(const Duration(milliseconds: 1000), () {
+    _delayTimer = Timer(Duration(milliseconds: 1000), () {
       _backAnimationController.forward();
     });
     var total = stat['total'];
@@ -282,7 +280,7 @@ class _SubHomePageState extends State<SubHomePage>
     super.build(context);
     return Center(
         child: FutureBuilder<dynamic>(
-      future: _getAllData,
+      future: _getAllDatas(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         // 请求已结束
         if (snapshot.connectionState == ConnectionState.done) {
@@ -319,11 +317,15 @@ class _SubHomePageState extends State<SubHomePage>
       },
     ));
   }
+
   @override
   void dispose() {
     _animationController.dispose();
     _backAnimationController.dispose();
-  super.dispose();
+    if (_delayTimer != null) {
+      _delayTimer!.cancel();
+    }
+    super.dispose();
   }
 
   @override

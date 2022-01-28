@@ -11,9 +11,8 @@ import 'package:frisbee/utils/request_util.dart';
 import 'package:flutter_svg/svg.dart';
 
 class BookPage extends StatefulWidget {
-  const BookPage({Key? key, this.icon, this.header}) : super(key: key);
-  final IconData? icon;
-  final String? header;
+  const BookPage({Key? key, required this.teamId}) : super(key: key);
+  final String teamId;
 
   @override
   State<StatefulWidget> createState() {
@@ -22,23 +21,22 @@ class BookPage extends StatefulWidget {
 }
 
 class _BookPageState extends State<BookPage>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  bool _hasLoadData = false;
+    with SingleTickerProviderStateMixin {
   var _getAllData;
-  late final List<Map<String, dynamic>> _showTagInfos = [];
-  late final Map<String, String> _tagMap = {};
-  late final Map<String, Map> _userMap = {};
+  late List<Map<String, dynamic>> _showTagInfos = [];
+  late Map<String, String> _tagMap = {};
+  late Map<String, Map> _userMap = {};
   late bool hasNotSeen = false;
-  late final Map<String, dynamic> _bookMap = {};
+  late Map<String, dynamic> _bookMap = {};
   @override
   void initState() {
-    _getAllData = _getAllDatas();
+    // _getAllData = _getAllDatas();
 
     super.initState();
   }
   Future _getTeamData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var data = await ApiClient().get('/api/teams/$teamId');
       return data;
     }
@@ -46,7 +44,7 @@ class _BookPageState extends State<BookPage>
 
   Future _getGamesData() async {
     if (Global.teams.isNotEmpty) {
-      var teamId = Global.currentTeam!.id;
+      var teamId = widget.teamId;
       var data = await ApiClient().get('/api/teams/$teamId/games');
       return data;
     }
@@ -107,9 +105,10 @@ class _BookPageState extends State<BookPage>
   }
 
   _processData(data) {
-    if (_hasLoadData) {
-      return;
-    }
+    _showTagInfos = [];
+    _tagMap = {};
+    _userMap = {};
+    _bookMap = {};
     for (var one in data) {
       if (one is List) {
         for (var book in one) {
@@ -134,7 +133,6 @@ class _BookPageState extends State<BookPage>
     _showTagInfos.insert(0, {'name': '未看', 'id': 'unseen'});
     _showTagInfos.insert(0, {'name': '全部', 'id': 'total'});
     hasNotSeen = _bookMap['unseen']?.isNotEmpty ?? false;
-    _hasLoadData = true;
   }
 
   List<Widget> _createBookBodies() {
@@ -273,9 +271,9 @@ class _BookPageState extends State<BookPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    // super.build(context);
     return FutureBuilder<dynamic>(
-        future: _getAllData,
+        future: _getAllDatas(),
         builder: (BuildContext context, AsyncSnapshot snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
@@ -315,6 +313,6 @@ class _BookPageState extends State<BookPage>
         });
   }
 
-  @override
-  bool get wantKeepAlive => true;
+  // @override
+  // bool get wantKeepAlive => false;
 }

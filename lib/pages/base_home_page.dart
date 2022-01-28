@@ -29,9 +29,9 @@ class HomePageState extends State<HomePage>
   late String showTeamName = '';
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List tabs = [
-    const SubHomePage(icon: Icons.home, header: "主页"),
-    const BookPage(icon: Icons.book, header: "战术"),
-    const PlayerPage(icon: Icons.card_membership, header: "成员"),
+    {'page': SubHomePage, 'icon': Icons.home, 'header': '主页'},
+    {'page': BookPage, 'icon': Icons.book, 'header': '战术'},
+    {'page': PlayerPage, 'icon': Icons.card_membership, 'header': '成员'}
   ];
   int _selectedIndex = 1;
   @override
@@ -64,6 +64,7 @@ class HomePageState extends State<HomePage>
         minTextAdapt: true,
         orientation: Orientation.portrait);
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text(
           showTeamName,
@@ -73,14 +74,22 @@ class HomePageState extends State<HomePage>
               onPressed: () {
                 _showPicker(context);
               },
-              icon: Icon(Icons.settings))
+              icon: const Icon(Icons.settings))
         ],
       ),
-      body: tabs[_selectedIndex],
+      body: Builder(builder: (BuildContext context) {
+        if (_selectedIndex == 0) {
+          return SubHomePage(teamId: Global.currentTeam!.id.toString());
+        } else if (_selectedIndex == 1) {
+          return BookPage(teamId: Global.currentTeam!.id.toString());
+        } else {
+          return PlayerPage(teamId: Global.currentTeam!.id.toString());
+        }
+      },),
       bottomNavigationBar: BottomNavigationBar(
         items: tabs
             .map((e) =>
-                BottomNavigationBarItem(icon: Icon(e.icon), label: e.header))
+                BottomNavigationBarItem(icon: Icon(e['icon']), label: e['header']))
             .toList(),
         onTap: _onTap,
         currentIndex: _selectedIndex,
@@ -103,9 +112,20 @@ class HomePageState extends State<HomePage>
         adapter: PickerDataAdapter<String>(pickerdata: names),
         changeToFirst: false,
         selecteds: [index],
-        hideHeader: true,
-        height: 100,
+        hideHeader: false,
+        height: 120,
         title: const Text("选择队伍"),
+        confirmText: '确定',
+        cancelText: '取消',
+        itemExtent: 38,
+        cancelTextStyle: const TextStyle(
+          color: Colors.grey,
+          fontSize: 20.0,
+        ),
+        confirmTextStyle: const TextStyle(
+          color: Colors.blue,
+          fontSize: 20.0,
+        ),
         textAlign: TextAlign.left,
         columnPadding: const EdgeInsets.all(10.0),
         onConfirm: (Picker picker, List value) {
@@ -113,7 +133,7 @@ class HomePageState extends State<HomePage>
           if (newTeamName != showTeamName) {
             showTeamName = newTeamName;
             for (var team in Global.teams) {
-              var teamName = team!.name??"";
+              var teamName = team!.name ?? "";
               if (showTeamName == teamName) {
                 Global.currentTeam = team;
                 break;
@@ -121,7 +141,7 @@ class HomePageState extends State<HomePage>
             }
             setState(() {});
           }
-        }).showDialog(context);
+        }).showModal(context);
   }
 
   @override
@@ -130,5 +150,4 @@ class HomePageState extends State<HomePage>
     _tabController.dispose();
     super.dispose();
   }
-
 }
