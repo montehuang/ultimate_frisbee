@@ -12,6 +12,61 @@ import 'package:frisbee/custom_widgets/draw_line.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
 import 'package:frisbee/utils/calculate.dart';
 
+class MovableFieldItem extends StatefulWidget {
+  MovableFieldItem(
+      {Key? key,
+      required this.leftValue,
+      required this.topValue,
+      required this.isShowBorder,
+      required this.sizeNum,
+      required this.shape,
+      required this.color,
+      required this.showText,
+      required this.textColor,
+      this.moveCallback})
+      : super(key: key);
+  double leftValue = 0;
+  double topValue = 0;
+  Color color = Colors.white;
+  bool isShowBorder = false;
+  double sizeNum = 0.0;
+  ItemShape shape;
+  Color textColor;
+  String showText;
+  Function? moveCallback;
+
+  @override
+  State<StatefulWidget> createState() => _MovableFieldItemState();
+}
+
+class _MovableFieldItemState extends State<MovableFieldItem> {
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: widget.leftValue,
+      top: widget.topValue,
+      child: GestureDetector(
+          onPanUpdate: (tagInfo) {
+            setState(() {
+              widget.leftValue += tagInfo.delta.dx;
+              widget.topValue += tagInfo.delta.dy;
+              if (widget.moveCallback != null) {
+                widget.moveCallback!(widget.leftValue, widget.topValue);
+              }
+            });
+          },
+          child: FieldItemWidget(
+            color: widget.color,
+            border: widget.isShowBorder ? FieldItemBorder() : null,
+            showText: widget.showText,
+            sizeNum: widget.sizeNum,
+            shape: widget.shape,
+            textColor: widget.textColor,
+          )),
+    );
+  }
+}
+
 class StrategyBoard extends StatelessWidget {
   StrategyBoard(
       {Key? key,
@@ -37,21 +92,29 @@ class StrategyBoard extends StatelessWidget {
       var yend = cort['width'] > cort['height'] ? 'xend' : 'yend';
       var xmid = cort['width'] > cort['height'] ? 'ymid' : 'xmid';
       var ymid = cort['width'] > cort['height'] ? 'xmid' : 'ymid';
-      var midX = currentStepMap[indexKey][xmid] * width / 100 - filedItemSizeNum! / 2;
-      var midY = currentStepMap[indexKey][ymid] * height / 100 - filedItemSizeNum! / 2;
-      var endX = currentStepMap[indexKey][xend] * width / 100 - filedItemSizeNum! / 2;
-      var endY = currentStepMap[indexKey][yend] * height / 100 - filedItemSizeNum! / 2;
+      var midX =
+          currentStepMap[indexKey][xmid] * width / 100 - filedItemSizeNum! / 2;
+      var midY =
+          currentStepMap[indexKey][ymid] * height / 100 - filedItemSizeNum! / 2;
+      var endX =
+          currentStepMap[indexKey][xend] * width / 100 - filedItemSizeNum! / 2;
+      var endY =
+          currentStepMap[indexKey][yend] * height / 100 - filedItemSizeNum! / 2;
       var startX = 0.0;
       var startY = 0.0;
       if (stepIndex == 0) {
         startX = endX;
         startY = endY;
       } else {
-        startX = currentStepMap[indexKey][xtart] * width / 100 - filedItemSizeNum! / 2;
-        startY = currentStepMap[indexKey][ystart] * height / 100 - filedItemSizeNum! / 2;
+        startX = currentStepMap[indexKey][xtart] * width / 100 -
+            filedItemSizeNum! / 2;
+        startY = currentStepMap[indexKey][ystart] * height / 100 -
+            filedItemSizeNum! / 2;
       }
-      var beginPoint = Offset(startX + filedItemSizeNum! / 2, startY + filedItemSizeNum! / 2);
-      var endPoint = Offset(endX + filedItemSizeNum! / 2, endY + filedItemSizeNum! / 2);
+      var beginPoint = Offset(
+          startX + filedItemSizeNum! / 2, startY + filedItemSizeNum! / 2);
+      var endPoint =
+          Offset(endX + filedItemSizeNum! / 2, endY + filedItemSizeNum! / 2);
       pointMap[indexKey] = {"beginPoint": beginPoint, 'endPoint': endPoint};
       if (currentStepMap[indexKey]['mode'] == 'line') {
         var leftAnimation = Tween(begin: startX, end: endX).animate(
@@ -85,7 +148,8 @@ class StrategyBoard extends StatelessWidget {
         ]).animate(controller);
         leftAnimationMap[indexKey] = leftAnimation;
         topAnimationMap[indexKey] = topAnimation;
-        var middlePoint = Offset(midX + filedItemSizeNum! / 2, midY + filedItemSizeNum! / 2);
+        var middlePoint =
+            Offset(midX + filedItemSizeNum! / 2, midY + filedItemSizeNum! / 2);
         pointMap[indexKey]?['middlePoint'] = middlePoint;
       } else if (currentStepMap[indexKey]['mode'] == 'curve') {
         var beginOffset = Offset(startX, startY);
@@ -108,11 +172,13 @@ class StrategyBoard extends StatelessWidget {
           )
         ]).animate(controller);
         curveAnimationMap[indexKey] = curveAnimation;
-        var middlePoint = Offset(midX + filedItemSizeNum! / 2, midY + filedItemSizeNum! / 2);
+        var middlePoint =
+            Offset(midX + filedItemSizeNum! / 2, midY + filedItemSizeNum! / 2);
         pointMap[indexKey]?['middlePoint'] = middlePoint;
         List<Offset> controlPoints = [];
         for (Offset point in result) {
-          controlPoints.add(Offset(point.dx + filedItemSizeNum! / 2, point.dy + filedItemSizeNum! / 2));
+          controlPoints.add(Offset(point.dx + filedItemSizeNum! / 2,
+              point.dy + filedItemSizeNum! / 2));
         }
         pointMap[indexKey]?['controlPoints'] = controlPoints;
       }
@@ -158,7 +224,8 @@ class StrategyBoard extends StatelessWidget {
                   end: endPoint,
                   isLine: isLine));
           items.add(line);
-          Widget item = _fieldItemWidget(key, beginPoint.dx - 1.5.r, beginPoint.dy - 1.5.r, '', 3.r);
+          Widget item = _fieldItemWidget(
+              key, beginPoint.dx - 1.5.r, beginPoint.dy - 1.5.r, '', 3.r);
           items.add(item);
         }
       }
@@ -175,7 +242,8 @@ class StrategyBoard extends StatelessWidget {
         leftValue = leftAnimationMap[key]?.value;
         topVaule = topAnimationMap[key]?.value;
       }
-      Widget item = _fieldItemWidget(key, leftValue, topVaule, key.substring(1), filedItemSizeNum);
+      Widget item = _fieldItemWidget(
+          key, leftValue, topVaule, key.substring(1), filedItemSizeNum);
       items.add(item);
     }
     return Stack(
@@ -183,31 +251,39 @@ class StrategyBoard extends StatelessWidget {
       children: items,
     );
   }
-  Widget _createOneItemWidget(leftValue, topVaule, showText, sizeNum, color, shape, bool isShowBorder, textColor) {
-    Widget widget = Positioned(
-          left: leftValue,
-          top: topVaule,
-          child: FieldItemWidget(
-            color: color,
-            border: isShowBorder ? FieldItemBorder():null,
-            showText: showText ?? '',
-            sizeNum: sizeNum,
-            shape: shape,
-            textColor: textColor,
-          ));
-          return widget;
+
+  Widget _createOneItemWidget(leftValue, topVaule, showText, sizeNum, color,
+      shape, bool isShowBorder, textColor) {
+    Widget widget = MovableFieldItem(
+      leftValue: leftValue,
+      topValue: topVaule,
+      color: color,
+      isShowBorder: isShowBorder,
+      showText: showText ?? '',
+      sizeNum: sizeNum,
+      shape: shape ?? ItemShape.Circle,
+      textColor: textColor ?? Colors.white,
+      moveCallback: (left, top) {
+        print("===($left,$top)");
+      },
+    );
+    return widget;
   }
 
   Widget _fieldItemWidget(key, leftValue, topVaule, showText, sizeNum) {
     Widget item;
     if (key.contains('a')) {
-      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum, Colors.green.shade400, null, false, null);
+      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum,
+          Colors.green.shade400, null, false, null);
     } else if (key.contains('b')) {
-      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum, Colors.grey, null, false, null);
+      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum,
+          Colors.grey, null, false, null);
     } else if (key.contains('x')) {
-      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum, Colors.white, null, true, Colors.grey);
+      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum,
+          Colors.white, null, true, Colors.grey);
     } else if (key.contains('y')) {
-      item = _createOneItemWidget(leftValue, topVaule, '', sizeNum, Colors.orange, ItemShape.Triangle, false, null);
+      item = _createOneItemWidget(leftValue, topVaule, '', sizeNum,
+          Colors.orange, ItemShape.Triangle, false, null);
     } else {
       item = Container();
     }
