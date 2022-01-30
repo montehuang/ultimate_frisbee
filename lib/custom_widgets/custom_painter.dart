@@ -6,18 +6,20 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
+class CurvePaintData {
+  CurvePaintData({this.beginPoint, this.controlPoints, this.middlePoint, this.endPoint, this.isLine, this.size});
+  Size? size;
+  late Offset? beginPoint;
+  late List<Offset>? controlPoints;
+  late Offset? middlePoint;
+  late Offset? endPoint;
+  late bool? isLine;
+}
 class CurvePainter extends CustomPainter {
   CurvePainter(
-      { this.begin,
-       this.middle,
-       this.end,
-       this.controlPos=const[],
-       this.isLine});
-  Offset? begin;
-  Offset? middle;
-  Offset? end;
-  late List<Offset> controlPos;
-  bool? isLine = true;
+      {required this.curveData});
+  CurvePaintData curveData;
 
 
   @override
@@ -27,11 +29,11 @@ class CurvePainter extends CustomPainter {
     ..color = Colors.grey.shade300
     ..style = PaintingStyle.stroke;
     var path = Path();
-    if (isLine == true) {
-      path.moveTo(begin!.dx, begin!.dy);
-      if (middle != null) {
+    if (curveData.isLine == true) {
+      path.moveTo(curveData.beginPoint!.dx, curveData.beginPoint!.dy);
+      if (curveData.middlePoint != null) {
       
-        path.lineTo(middle!.dx, middle!.dy);
+        path.lineTo(curveData.middlePoint!.dx, curveData.middlePoint!.dy);
         // var segmentLength = 10.0;
         // var length = sqrt(pow(begin!.dx - end!.dx, 2) + pow(begin!.dy - end!.dy, 2));
         // var currentLength = 0.0;
@@ -51,13 +53,13 @@ class CurvePainter extends CustomPainter {
         //   index += 1;
         // }
       }
-      path.lineTo(end!.dx, end!.dy);
-    } else if (controlPos.length == 2) {
-      var controlPos1 = controlPos[0];
-      var controlPos2 = controlPos[1];
-      path.moveTo(begin!.dx, begin!.dy);
-      path.quadraticBezierTo(controlPos1.dx, controlPos1.dy, middle!.dx, middle!.dy);
-      path.quadraticBezierTo(controlPos2.dx, controlPos2.dy, end!.dx, end!.dy);
+      path.lineTo(curveData.endPoint!.dx, curveData.endPoint!.dy);
+    } else if (curveData.controlPoints!.length == 2) {
+      var controlPos1 = curveData.controlPoints![0];
+      var controlPos2 = curveData.controlPoints![1];
+      path.moveTo(curveData.beginPoint!.dx, curveData.beginPoint!.dy);
+      path.quadraticBezierTo(controlPos1.dx, controlPos1.dy, curveData.middlePoint!.dx, curveData.middlePoint!.dy);
+      path.quadraticBezierTo(controlPos2.dx, controlPos2.dy, curveData.endPoint!.dx, curveData.endPoint!.dy);
     }
     canvas.drawPath(path, paint);
   }

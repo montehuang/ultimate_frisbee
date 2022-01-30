@@ -11,6 +11,51 @@ import 'package:frisbee/custom_widgets/custom_painter.dart';
 import 'package:frisbee/custom_widgets/draw_line.dart';
 import 'package:frisbee/custom_widgets/field_item_widget.dart';
 import 'package:frisbee/utils/calculate.dart';
+import 'package:frisbee/utils/event_util.dart';
+import 'package:frisbee/common/events.dart';
+
+class MovableLineItem extends StatefulWidget {
+  MovableLineItem({Key? key, required this.curveData, required this.fieldKey})
+      : super(key: key);
+  CurvePaintData curveData;
+  String fieldKey;
+  @override
+  State<StatefulWidget> createState() => _MovableLineItemState();
+}
+
+class _MovableLineItemState extends State<MovableLineItem> {
+  @override
+  void initState() {
+    super.initState();
+    EventBusUtil.listen((FieldItemMoveEvent event) {
+      var delta = event.delta;
+      var preEndPoint = widget.curveData.endPoint;
+      if (event.fieldKey == widget.fieldKey &&
+          ((delta.dx - preEndPoint!.dx).abs() > 0 ||
+              (delta.dy - preEndPoint.dy).abs() > 0)) {
+        if (mounted) {
+          setState(() {
+            widget.curveData.endPoint =
+                Offset(preEndPoint.dx + delta.dx, preEndPoint.dy + delta.dy);
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = widget.curveData.size ?? const Size(0, 0);
+    return CustomPaint(
+        size: size, painter: CurvePainter(curveData: widget.curveData));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    EventBusUtil.destroy();
+  }
+}
 
 class MovableFieldItem extends StatefulWidget {
   MovableFieldItem(
@@ -51,7 +96,7 @@ class _MovableFieldItemState extends State<MovableFieldItem> {
               widget.leftValue += tagInfo.delta.dx;
               widget.topValue += tagInfo.delta.dy;
               if (widget.moveCallback != null) {
-                widget.moveCallback!(widget.leftValue, widget.topValue);
+                widget.moveCallback!(tagInfo.delta.dx, tagInfo.delta.dy);
               }
             });
           },
@@ -76,8 +121,17 @@ class StrategyBoard extends StatelessWidget {
       required this.currentStepMap,
       required this.stepIndex,
       required this.controller,
-      required this.showLines}) {
-    key = key;
+      required this.showLines})
+      : super(key: key);
+  Map playerMap;
+  double? filedItemSizeNum;
+  Map currentStepMap;
+  int stepIndex;
+  Map cort;
+  bool showLines = false;
+  Animation<double> controller;
+
+  void initAllData() {
     filedItemSizeNum ??= 26.r;
     for (var key in playerMap.keys) {
       for (var index in playerMap[key]) {
@@ -184,21 +238,15 @@ class StrategyBoard extends StatelessWidget {
       }
     }
   }
+
   var width = 330.r;
   var height = 600.r;
-  Map playerMap;
-  double? filedItemSizeNum;
-  Map currentStepMap;
   late List allPoints = [];
   List<Offset?>? controlPoints;
   late Map<String, Map> pointMap = {};
-  int stepIndex;
-  Map cort;
-  bool showLines = false;
   late Map<String, Animation> curveAnimationMap = {};
   late Map<String, Animation> leftAnimationMap = {};
   late Map<String, Animation> topAnimationMap = {};
-  Animation<double> controller;
   late List indexKeys = [];
   List animations = [];
   Widget _createItemWidgets(BuildContext context, Widget? child) {
@@ -215,18 +263,20 @@ class StrategyBoard extends StatelessWidget {
           if (!controlPoints.isEmpty) {
             isLine = false;
           }
-          Widget line = CustomPaint(
-              size: Size(width, height),
-              painter: CurvePainter(
-                  begin: beginPoint,
-                  controlPos: controlPoints,
-                  middle: middlePoint,
-                  end: endPoint,
-                  isLine: isLine));
+          Widget line = MovableLineItem(
+            fieldKey: key,
+            curveData: CurvePaintData(
+                size: Size(width, height),
+                isLine: isLine,
+                beginPoint: beginPoint,
+                controlPoints: controlPoints,
+                middlePoint: middlePoint,
+                endPoint: endPoint),
+          );
           items.add(line);
-          Widget item = _fieldItemWidget(
-              key, beginPoint.dx - 1.5.r, beginPoint.dy - 1.5.r, '', 3.r);
-          items.add(item);
+          // Widget item = _fieldItemWidget(
+          //     key, beginPoint.dx - 1.5.r, beginPoint.dy - 1.5.r, '', 3.r);
+          // items.add(item);
         }
       }
     }
@@ -252,8 +302,8 @@ class StrategyBoard extends StatelessWidget {
     );
   }
 
-  Widget _createOneItemWidget(leftValue, topVaule, showText, sizeNum, color,
-      shape, bool isShowBorder, textColor) {
+  Widget _createOneItemWidget(key, leftValue, topVaule, showText, sizeNum,
+      color, shape, bool isShowBorder, textColor) {
     Widget widget = MovableFieldItem(
       leftValue: leftValue,
       topValue: topVaule,
@@ -263,8 +313,12 @@ class StrategyBoard extends StatelessWidget {
       sizeNum: sizeNum,
       shape: shape ?? ItemShape.Circle,
       textColor: textColor ?? Colors.white,
-      moveCallback: (left, top) {
-        print("===($left,$top)");
+      moveCallback: (deltaX, deltaY) {
+        if (pointMap[key] != null) {
+          FieldItemMoveEvent event =
+              FieldItemMoveEvent(key, Offset(deltaX, deltaY));
+          EventBusUtil.fire(event);
+        }
       },
     );
     return widget;
@@ -273,16 +327,16 @@ class StrategyBoard extends StatelessWidget {
   Widget _fieldItemWidget(key, leftValue, topVaule, showText, sizeNum) {
     Widget item;
     if (key.contains('a')) {
-      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum,
+      item = _createOneItemWidget(key, leftValue, topVaule, showText, sizeNum,
           Colors.green.shade400, null, false, null);
     } else if (key.contains('b')) {
-      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum,
+      item = _createOneItemWidget(key, leftValue, topVaule, showText, sizeNum,
           Colors.grey, null, false, null);
     } else if (key.contains('x')) {
-      item = _createOneItemWidget(leftValue, topVaule, showText, sizeNum,
+      item = _createOneItemWidget(key, leftValue, topVaule, showText, sizeNum,
           Colors.white, null, true, Colors.grey);
     } else if (key.contains('y')) {
-      item = _createOneItemWidget(leftValue, topVaule, '', sizeNum,
+      item = _createOneItemWidget(key, leftValue, topVaule, '', sizeNum,
           Colors.orange, ItemShape.Triangle, false, null);
     } else {
       item = Container();
@@ -346,6 +400,7 @@ class StrategyBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    initAllData();
     return Builder(builder: (context) {
       return Container(
           width: width,

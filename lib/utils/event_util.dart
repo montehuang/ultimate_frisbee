@@ -24,7 +24,10 @@ class EventBusUtil{
      //内部流属于广播模式，可以有多个订阅者
      return _eventBus!.on<T>().listen(onData);
    }
-
+  static void destroy() {
+    _eventBus ??= EventBus();
+    _eventBus!.destroy();
+  }
    //发送事件
    static void fire<T extends Event>(T e) {
      _eventBus ??= EventBus();
