@@ -53,7 +53,6 @@ class _MovableLineItemState extends State<MovableLineItem> {
   @override
   void dispose() {
     super.dispose();
-    EventBusUtil.destroy();
   }
 }
 
